@@ -3,9 +3,9 @@ import json
 import sys
 
 # Configurações da rede
-DEALER_IP = "10.254.223.39"
 PLAYERS_IPS = ["10.254.223.40", "10.254.223.41", "10.254.223.42"]
 PLAYERS_PORTS = [5040, 5041, 5042]
+MY_IP = "10.254.223.39"
 MY_PORT = 5039
 NEXT_IP = "10.254.223.40"
 NEXT_PORT = 5040
@@ -13,7 +13,7 @@ NEXT_PORT = 5040
 # Função para criar socket UDP
 def create_socket():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.bind((DEALER_IP, MY_PORT))
+    sock.bind((MY_IP, MY_PORT))
     return sock
 
 # Função para enviar mensagem UDP
@@ -23,21 +23,21 @@ def send_message(sock, message, ip, port):
 # Função de inicialização do jogo
 def init_game(sock):
     cards = distribute_cards()
-    for i, player_ip in enumerate(PLAYERS_IPS):
+    for i in range(3):
         msg = {
             "type": "init",
             "player": i + 1,
             "cards": cards[i]
         }
-        send_message(sock, msg, player_ip, PLAYERS_PORTS[i])
+        send_message(sock, msg, PLAYERS_IPS[i], PLAYERS_PORTS[i])
     
     # Enviar cartas para o próprio dealer
-    msg = {
-        "type": "init",
-        "player": len(PLAYERS_IPS) + 1,
-        "cards": cards[-1]
-    }
-    process_message(sock, msg)
+    #msg = {
+    #    "type": "init",
+    #    "player": len(PLAYERS_IPS) + 1,
+    #    "cards": cards[-1]
+    #}
+    #process_message(sock, msg)
 
 # Função fictícia para distribuir cartas
 def distribute_cards():
@@ -81,7 +81,7 @@ def receive_message(sock):
     while True:
         data, addr = sock.recvfrom(1024)
         message = json.loads(data.decode())
-        process_message(sock, message)
+        #process_message(sock, message)
 
 def main():
     sock = create_socket()
