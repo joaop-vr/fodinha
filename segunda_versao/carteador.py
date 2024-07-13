@@ -47,14 +47,25 @@ def distribute_cards():
 # Função para processar mensagens recebidas
 def process_message(sock, message):
     if message["type"] == "init":
-        print(f"Jogador {message['player']} recebeu cartas: {message['cards']}")
-        if message['player'] == 1:  # O dealer começa o jogo
-            make_move(sock, message)
-    elif message["type"] == "play":
-        if message["next_player"] == 1:
-            make_move(sock, message)
-        else:
-            pass_message(sock, message)
+        printf(f"Todos os jogadores receberam suas cartas!")
+        msg = {
+            "type": "take_guesses",
+            "player": MY_ID,
+            "guesses": []
+        }
+        send_message(sock, msg, NEXT_IP, NEXT_PORT)
+    elif message["type"] == "inform_guesses":
+        print(f"Palpites:\n")
+        for i in range(len(message[guesses])):
+            print(f"Jogador {i+1}: message[guesses][i]. \n")
+        #    print(f"Jogador {message['player']} recebeu cartas: {message['cards']}")
+    #    if message['player'] == 1:  # O dealer começa o jogo
+    #        make_move(sock, message)
+    #elif message["type"] == "play":
+    #    if message["next_player"] == 1:
+    #        make_move(sock, message)
+    #    else:
+    #        pass_message(sock, message)
 
 # Função para fazer uma jogada
 def make_move(sock, message):

@@ -8,6 +8,7 @@ MY_IP = "10.254.223.42"  # IP desta máquina
 MY_PORT = 5042           # Porta para receber mensagens
 NEXT_IP = "10.254.223.39"  # IP da próxima máquina no anel
 NEXT_PORT = 5039         # Porta para enviar mensagens
+MY_CARDS = []
 
 # Função para criar socket UDP
 def create_socket():
@@ -19,12 +20,24 @@ def create_socket():
 def send_message(sock, message, ip, port):
     sock.sendto(json.dumps(message).encode(), (ip, port))
 
+# Função para o usuário informar o papite
+def take_guess(message):
+    guess = int(input("Informe o seu palpite: "))
+    message['guesses'].append(guess)
+    return message
+
 # Função para processar mensagens recebidas
 def process_message(sock, message):
-    if message["player"] == MY_ID:
+    if message["type"] == "init":
         print(f"Jogador {MY_ID} recebeu suas cartas: {message['cards']}")
-    
-    pass_message(sock, message)
+        MY_CARDS.append(message['cards'])
+        pass_message(sock, message)
+    elif message["type"] == "take_guesses":
+        new_message = take_guess(message)
+        pass_message(sock, new_message)
+    elif message["type"] == "inform_guesses":
+        pass_message(sock, message)
+
     #elif message["type"] == "play":
     #    if message["next_player"] == 2:
     #        make_move(sock, message)
