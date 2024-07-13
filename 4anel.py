@@ -26,7 +26,7 @@ def pass_message(sock, message):
     print(f"Passing message to {NEXT_IP}:{NEXT_PORT}")
     sock.sendto(message, (NEXT_IP, NEXT_PORT))
 
-def main()
+def main():
     sock = create_socket()
     if len(sys.argv) > 1 and sys.argv[1] == 'start':
         # Envia a mensagem inicial para iniciar a comunicação em anel
