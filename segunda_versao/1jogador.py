@@ -3,6 +3,7 @@ import json
 import sys
 
 # Configurações da rede
+MY_ID = 1
 MY_IP = "10.254.223.40"  # IP desta máquina
 MY_PORT = 5040           # Porta para receber mensagens
 NEXT_IP = "10.254.223.41"  # IP da próxima máquina no anel
@@ -20,13 +21,15 @@ def send_message(sock, message, ip, port):
 
 # Função para processar mensagens recebidas
 def process_message(sock, message):
-    if message["type"] == "init":
-        print(f"Jogador {message['player']} recebeu cartas: {message['cards']}")
-    elif message["type"] == "play":
-        if message["next_player"] == 2:
-            make_move(sock, message)
-        else:
-            pass_message(sock, message)
+    if message["player"] == MY_ID:
+        print(f"Jogador {MY_ID} recebeu suas cartas: {message['cards']}")
+    
+    pass_message(sock, message)
+    #elif message["type"] == "play":
+    #    if message["next_player"] == 2:
+    #        make_move(sock, message)
+    #    else:
+    #        pass_message(sock, message)
 
 # Função para fazer uma jogada
 def make_move(sock, message):
