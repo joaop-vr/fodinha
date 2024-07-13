@@ -2,10 +2,10 @@ import socket
 import sys
 
 # Configurações para Máquina 3
-MY_IP = "10.254.223.41"  # IP desta máquina
-MY_PORT = 5041           # Porta para receber mensagens
-NEXT_IP = "10.254.223.42"  # IP da próxima máquina no anel
-NEXT_PORT = 5042         # Porta para enviar mensagens
+MY_IP = "10.254.223.42"  # IP desta máquina
+MY_PORT = 5042           # Porta para receber mensagens
+NEXT_IP = "10.254.223.39"  # IP da próxima máquina no anel
+NEXT_PORT = 5039         # Porta para enviar mensagens
 
 def create_socket():
     # Criação e ligação do socket UDP
@@ -30,7 +30,7 @@ def main(
     sock = create_socket()
     if len(sys.argv) > 1 and sys.argv[1] == 'start':
         # Envia a mensagem inicial para iniciar a comunicação em anel
-        initial_message = b"Hello from Machine 2"
+        initial_message = b"Hello from Machine 4"
         pass_message(sock, initial_message)
     receive_message(sock)
 
