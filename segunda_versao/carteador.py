@@ -3,6 +3,7 @@ import json
 import sys
 
 # Configurações da rede
+MY_ID = 0
 PLAYERS_IPS = ["10.254.223.40", "10.254.223.41", "10.254.223.42"]
 PLAYERS_PORTS = [5040, 5041, 5042]
 MY_IP = "10.254.223.39"
