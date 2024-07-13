@@ -47,10 +47,10 @@ def make_move(sock, message):
 
 # Função para passar a mensagem adiante
 def pass_message(sock, message):
-    next_player_index = (message["next_player"] - 1) % len(PLAYERS_IPS)
-    next_ip = PLAYERS_IPS[next_player_index]
-    next_port = PLAYERS_PORTS[next_player_index]
-    send_message(sock, message, next_ip, next_port)
+    #next_player_index = (message["next_player"] - 1) % len(PLAYERS_IPS)
+    #next_ip = PLAYERS_IPS[next_player_index]
+    #next_port = PLAYERS_PORTS[next_player_index]
+    send_message(sock, message, NEXT_IP, NEXT_PORT)
 
 # Função para receber e processar mensagens
 def receive_message(sock):
