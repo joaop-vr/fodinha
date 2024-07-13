@@ -30,7 +30,7 @@ def main(
     sock = create_socket()
     if len(sys.argv) > 1 and sys.argv[1] == 'start':
         # Envia a mensagem inicial para iniciar a comunicação em anel
-        initial_message = b"Hello from Machine 2"
+        initial_message = b"Hello from Machine 3"
         pass_message(sock, initial_message)
     receive_message(sock)
 
