@@ -2,10 +2,10 @@ import socket
 import sys
 
 # Configurações para Máquina 1
-MY_IP = "10.254.223.61"  # IP desta máquina
-MY_PORT = 5061           # Porta para receber mensagens
-NEXT_IP = "10.254.223.62"  # IP da próxima máquina no anel
-NEXT_PORT = 5062         # Porta para enviar mensagens
+MY_IP = "10.254.223.39"  # IP desta máquina
+MY_PORT = 5039           # Porta para receber mensagens
+NEXT_IP = "10.254.223.40"  # IP da próxima máquina no anel
+NEXT_PORT = 5040         # Porta para enviar mensagens
 
 def create_socket():
     # Criação e ligação do socket UDP
