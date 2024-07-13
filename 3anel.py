@@ -18,7 +18,7 @@ def receive_message(sock):
         # Recepção de dados
         data, addr = sock.recvfrom(1024)  # buffer size is 1024 bytes
         print(f"Received message: {data} from {addr}")
-        if data:  # Se os dados são recebidosassam para a próxima máquina
+        if data:  # Se os dados são recebido psassam para a próxima máquina
             pass_message(sock, data)
 
 def pass_message(sock, message):
@@ -26,7 +26,7 @@ def pass_message(sock, message):
     print(f"Passing message to {NEXT_IP}:{NEXT_PORT}")
     sock.sendto(message, (NEXT_IP, NEXT_PORT))
 
-def main(
+def main()
     sock = create_socket()
     if len(sys.argv) > 1 and sys.argv[1] == 'start':
         # Envia a mensagem inicial para iniciar a comunicação em anel
