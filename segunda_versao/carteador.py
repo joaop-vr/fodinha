@@ -47,17 +47,17 @@ def distribute_cards():
 # Função para processar mensagens recebidas
 def process_message(sock, message):
     if message["type"] == "init":
-        printf(f"Todos os jogadores receberam suas cartas!")
+        print(f"Todos os jogadores receberam suas cartas!")
         msg = {
             "type": "take_guesses",
             "player": MY_ID,
             "guesses": []
         }
         send_message(sock, msg, NEXT_IP, NEXT_PORT)
-    elif message["type"] == "inform_guesses":
-        print(f"Palpites:\n")
-        for i in range(len(message[guesses])):
-            print(f"Jogador {i+1}: message[guesses][i]. \n")
+    elif message["type"] == "take_guesses":
+        print(f"Todos os jogadores já derao os palpites, irei informa-los.")
+        message['type'] = "inform_guesses"
+        send_message(sock, message, NEXT_IP, NEXT_PORT)
         #    print(f"Jogador {message['player']} recebeu cartas: {message['cards']}")
     #    if message['player'] == 1:  # O dealer começa o jogo
     #        make_move(sock, message)
@@ -93,7 +93,7 @@ def receive_message(sock):
     while True:
         data, addr = sock.recvfrom(1024)
         message = json.loads(data.decode())
-        #process_message(sock, message)
+        process_message(sock, message)
 
 def main():
     sock = create_socket()
