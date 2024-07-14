@@ -24,6 +24,7 @@ def send_message(sock, message, ip, port):
 def take_guess(message):
     guess = int(input("Informe o seu palpite: "))
     message['guesses'].append(guess)
+    message["type"] = "inform_guesses"
     return message
 
 # Função para processar mensagens recebidas
