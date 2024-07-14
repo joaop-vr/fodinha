@@ -67,7 +67,6 @@ def pass_message(sock, message):
     #next_player_index = (message["next_player"] - 1) % len(PLAYERS_IPS)
     #next_ip = PLAYERS_IPS[next_player_index]
     #next_port = PLAYERS_PORTS[next_player_index]
-    print(f"Enviando mensagem para {NEXT_IP} pela porta {NEXT_PORT}")
     send_message(sock, message, NEXT_IP, NEXT_PORT)
 
 # Função para receber e processar mensagens
@@ -81,5 +80,5 @@ def main():
     sock = create_socket()
     receive_message(sock)
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     main()

@@ -1,6 +1,7 @@
 import socket
 import json
 import sys
+import random
 
 # Configurações da rede
 MY_ID = 0
@@ -31,18 +32,20 @@ def init_game(sock):
             "cards": cards[i]
         }
         send_message(sock, msg, PLAYERS_IPS[i], PLAYERS_PORTS[i])
-    
-    # Enviar cartas para o próprio dealer
-    #msg = {
-    #    "type": "init",
-    #    "player": len(PLAYERS_IPS) + 1,
-    #    "cards": cards[-1]
-    #}
-    #process_message(sock, msg)
 
 # Função fictícia para distribuir cartas
 def distribute_cards():
-    return [["3H", "4D", "5S"], ["2H", "2D", "6S"], ["7H", "8D", "9S"], ["AH", "AD", "AS"]]
+    suits = ['C', 'O', 'E', 'P']  # Copas, Ouros, Espadas, Paus
+    values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
+    cards = [value + suit for suit in suits for value in values]
+    random.shuffle(cards)
+    players = [[] for _ in range(3)]
+    N = 5  # Defina o número de cartas que deseja distribuir para cada jogador
+    for i in range(N):
+        for j in range(3):
+            if cards:
+                players[j].append(cards.pop())
+    return players
 
 # Função para processar mensagens recebidas
 def process_message(sock, message):
@@ -55,17 +58,11 @@ def process_message(sock, message):
         }
         send_message(sock, msg, NEXT_IP, NEXT_PORT)
     elif message["type"] == "take_guesses":
-        print(f"Todos os jogadores já derao os palpites, irei informa-los.")
+        print(f"Todos os jogadores já deram os palpites")
         message['type'] = "inform_guesses"
         send_message(sock, message, NEXT_IP, NEXT_PORT)
-        #    print(f"Jogador {message['player']} recebeu cartas: {message['cards']}")
-    #    if message['player'] == 1:  # O dealer começa o jogo
-    #        make_move(sock, message)
-    #elif message["type"] == "play":
-    #    if message["next_player"] == 1:
-    #        make_move(sock, message)
-    #    else:
-    #        pass_message(sock, message)
+    elif message['type'] == "inform_guesses":
+        print(f"Todos foram informados dos palpites, podemos começar a jogar!")
 
 # Função para fazer uma jogada
 def make_move(sock, message):
@@ -101,5 +98,6 @@ def main():
         init_game(sock)
     receive_message(sock)
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     main()
+

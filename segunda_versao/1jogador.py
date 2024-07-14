@@ -79,5 +79,5 @@ def main():
     sock = create_socket()
     receive_message(sock)
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     main()
