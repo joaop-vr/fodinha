@@ -22,21 +22,24 @@ def send_message(sock, message, ip, port):
 
 # Função para o usuário informar o papite
 def take_guess(message):
+    print(f"Palpites ate entao: {message['guesses']}")
     guess = int(input("Informe o seu palpite: "))
     message['guesses'].append(guess)
-    message["type"] = "inform_guesses"
     return message
 
 # Função para processar mensagens recebidas
 def process_message(sock, message):
-    if message["type"] == "init":
-        print(f"Jogador {MY_ID} recebeu suas cartas: {message['cards']}")
+    if message["type"] == "init" and message["player"] == 3:
         MY_CARDS.append(message['cards'])
+        print(f"Jogador {MY_ID} recebeu suas cartas: {MY_CARDS}.")
         pass_message(sock, message)
     elif message["type"] == "take_guesses":
         new_message = take_guess(message)
         pass_message(sock, new_message)
     elif message["type"] == "inform_guesses":
+        print(f"Palpites:")
+        for i in range(len(message['guesses'])):
+            print(f"Jogador {i+1}: {message['guesses'][i]}.")
         pass_message(sock, message)
 
     #elif message["type"] == "play":
@@ -64,6 +67,7 @@ def pass_message(sock, message):
     #next_player_index = (message["next_player"] - 1) % len(PLAYERS_IPS)
     #next_ip = PLAYERS_IPS[next_player_index]
     #next_port = PLAYERS_PORTS[next_player_index]
+    print(f"Enviando mensagem para {NEXT_IP} pela porta {NEXT_PORT}")
     send_message(sock, message, NEXT_IP, NEXT_PORT)
 
 # Função para receber e processar mensagens
@@ -77,5 +81,5 @@ def main():
     sock = create_socket()
     receive_message(sock)
 
-if __name__ == "__main__":
+if _name_ == "_main_":
     main()
