@@ -49,7 +49,7 @@ def init_game(sock):
         MY_LIST.append(msg)
 
     # Prepara as mensagens de solicitação de palpites
-    for i in range(1,4):
+    for i in range(1,3):
         msg = {
             "type": "take_guesses",
             "from_player": MY_ID,
@@ -68,27 +68,32 @@ def distribute_cards():
     values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
     cards = [value + suit for suit in suits for value in values]
     random.shuffle(cards)
-    players_cards = [[] for _ in range(3)]
+    players_cards = [[] for _ in range(4)]
     N = 5  # Defina o número de cartas que deseja distribuir para cada jogador
     for i in range(N):
         for j in range(4):
             if cards:
                 players_cards[j].append(cards.pop())
+    
+    # Guardando as cartas do carteador
+    global MY_CARDS
+    MY_CARDS = players_cards.pop(3)
+    print(f"Cartas do acrteador: {MY_CARDS}")
     return players_cards
 
 # Função para processar mensagens recebidas
 def process_message(sock, message):
-    global TOKEN, MY_LIST
+    global TOKEN, MY_LIST, GUESSES
     if TOKEN == True or (message["type"] == "token" and message["to_player"] == MY_ID):
         print(f"Recebi/estou_com o token!.")
 
         # Envio das mensagens da lista
         if message['from_player'] == MY_ID and message['to_player'] != MY_ID:
             idx = None
-
+            msg = []
             # Distribuição de cartas
             if message['type'] == "init":
-                for i, item in MY_LIST:
+                for i, item in enumerate(MY_LIST):
                      if item['type'] =="init":
                         idx = i
                         break
@@ -98,16 +103,17 @@ def process_message(sock, message):
             # Debug
             idx = None
             if message['type'] == "init":
-                for i, item in MY_LIST:
+                for i, item in enumerate(MY_LIST):
                      if item['type'] =="init":
                         idx = i
                         break
                 if idx is  None:
                     print("Todos os joagdores ja receberam suas cartas!")
+                    print(f"Cartas do Carteador: {MY_CARDS}")
 
             # Requisição dos palpites
             if message['type'] == "take_guesses":
-                for i, item in MY_LIST:
+                for i, item in enumerate(MY_LIST):
                      if item['type'] =="take_guesses":
                         idx = i
                         break
@@ -117,12 +123,14 @@ def process_message(sock, message):
             # Debug
             idx = None
             if message['type'] == "take_guesses":
-                for i, item in MY_LIST:
+                for i, item in enumerate(MY_LIST):
                      if item['type'] =="take_guesses":
                         idx = i
                         break
                 if idx is None:
                     print("Já pedi os palpites para todos os jogadores!")
+                    guess = take_guess()
+                    GUESSES[3] = guess
 
             send_message(sock, msg, NEXT_IP, NEXT_PORT)
         
