@@ -116,7 +116,7 @@ def dealer(sock, message):
             count_nones = 0
             for guess in GUESSES:
                 if guess == None:
-                    count_nones++
+                    count_nones = count_nones+1
             if count_nones == 1:
                 guess = take_guess()
                 GUESSES[MY_ID] = guess
