@@ -4,6 +4,7 @@ import sys
 import random
 
 # Configurações da rede
+ROUND = 0
 MY_ID = 0
 TOKEN = False
 IS_DEALER = False
@@ -20,7 +21,7 @@ NEXT_ID = 1
 
 # Função de inicialização do jogo
 def init_game(sock):
-    global TOKEN, CARDS, MY_LIST, IS_DEALER
+    global TOKEN, CARDS, MY_LIST, IS_DEALER, ROUND
 
     # O carteador é o primeiro a receber um token
     TOKEN = True
@@ -30,6 +31,9 @@ def init_game(sock):
 
     # Configurando o jogador que começou o jogo como carteador (dealer)
     IS_DEALER = True
+
+    # Contador de rodadas
+    ROUND = ROUND + 1
 
     # Prepara as mensagens de distribuição de cartas
     for i in range(4):
