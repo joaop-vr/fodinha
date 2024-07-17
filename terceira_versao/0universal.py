@@ -60,7 +60,7 @@ def init_game(sock):
         msg = {
             "type": "take_guesses",
             "from_player": MY_ID,
-            "to_player": i,
+            "to_player": (MY_ID+i)%4,
             "data": []
         }
         MY_LIST.append(msg)

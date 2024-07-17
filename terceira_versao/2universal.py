@@ -60,7 +60,7 @@ def init_game(sock):
         msg = {
             "type": "take_guesses",
             "from_player": MY_ID,
-            "to_player": i,
+            "to_player": (MY_ID+i)%4,
             "data": []
         }
         MY_LIST.append(msg)
@@ -179,7 +179,7 @@ def normal_player(sock, message):
         if message["type"] == "init" and message["to_player"] == MY_ID:
             global DEALER_ID, TABLE_CARD
             DEALER_ID = message["from_player"]
-            MY_CARDS.append(message['data'])
+            MY_CARDS = message['data']
             print(f"Cartas (total): {MY_CARDS}")    
             TABLE_CARD = MY_CARDS.pop()
             print(f"Manilha: {TABLE_CARD}")
