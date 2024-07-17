@@ -194,7 +194,7 @@ def normal_player(sock, message):
         if message["type"] == "init" and message["to_player"] == MY_ID:
             global DEALER_ID, TABLE_CARD
             DEALER_ID = message["from_player"]
-            MY_CARDS.append(message['data'])
+            MY_CARDS = message['data']
             print(f"Cartas (total): {MY_CARDS}")    
             TABLE_CARD = MY_CARDS.pop()
             print(f"Manilha: {TABLE_CARD}")
@@ -233,10 +233,12 @@ def create_socket(num_player):
     MY_ID = num_player-1
     MY_IP = PLAYERS_IPS[MY_ID]
     MY_PORT = PLAYERS_PORTS[MY_ID]
-    NEXT_ID = MY_ID+1
+    NEXT_ID = (MY_ID+1)%4
     NEXT_IP = PLAYERS_IPS[NEXT_ID]
     NEXT_PORT = PLAYERS_PORTS[NEXT_ID]
     sock.bind((MY_IP, MY_PORT))
+    print(f"MY_ID: {MY_ID}, MY_IP: {MY_IP}, MY_PORT: {MY_PORT}")
+    print(f"NEXT_ID: {NEXT_ID}, NEXT_IP: {NEXT_IP}, NEXT_PORT: {NEXT_PORT}")
     return sock
 
 # Função para enviar mensagem UDP
@@ -257,7 +259,7 @@ def receive_message(sock):
 def main():
     cards = []
     if len(sys.argv) > 1:
-      sock = create_socket(sys.argv[1])
+      sock = create_socket(int(sys.argv[1]))
       if len(sys.argv) > 2 and sys.argv[2] == 'start':
           init_game(sock)
       receive_message(sock)
