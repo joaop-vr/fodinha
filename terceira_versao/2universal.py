@@ -96,7 +96,7 @@ def take_guess(count_guesses=0):
     while guess > len(MY_CARDS):
         print(f"Não é possível dar um palpite maior que o número de cartas que possui.")
         guess = int(input("Dê outro palpite: "))
-    if count_guesses != 0:
+    if count_guesses != 0 and ROUND >= 2:
         while count_guesses + guess == ROUND:
             print(f"A soma dos palpites deve ser diferente de {ROUND}.")
             guess = int(input("Dê outro palpite: "))
