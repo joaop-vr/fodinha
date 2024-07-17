@@ -26,15 +26,15 @@ def init_game(sock):
 
     # O carteador é o primeiro a receber um token
     TOKEN = True
+    
+    # Contador de rodadas
+    ROUND = ROUND + 1
 
     # Distribui as cartas para os jogadores e armazena em 'cards'
     CARDS = distribute_cards()
 
     # Configurando o jogador que começou o jogo como carteador (dealer)
     IS_DEALER = True
-
-    # Contador de rodadas
-    ROUND = ROUND + 1
 
     # Prepara as mensagens de distribuição de cartas
     for i in range(4):
@@ -50,9 +50,10 @@ def init_game(sock):
     global MY_CARDS
     print(f"len: {len(CARDS)}")
     MY_CARDS = CARDS.pop(0)
-    print(f"Manilha: {MY_CARDS[4]}")
-    TABLE_CARD = MY_CARDS[4]
-    print(f"Cartas do carteador: {MY_CARDS[:4]}")
+    print(f"Cartas (total): {MY_CARDS}")    
+    TABLE_CARD = MY_CARDS.pop()
+    print(f"Manilha: {TABLE_CARD}")
+    print(f"Cartas do carteador: {MY_CARDS}")
 
     # Prepara as mensagens de solicitação de palpites
     for i in range(4):
@@ -76,7 +77,7 @@ def distribute_cards():
     values = ['A', '2', '3', '4', '5', '6', '7', 'J', 'Q', 'K']
     cards = [value + suit for suit in suits for value in values]
     random.shuffle(cards)
-    players_cards = [[] for _ in range(5)]
+    players_cards = [[] for _ in range(4)]
     for i in range(ROUND): # ROUND == número de cartas sorteadas
         for j in range(4):
             if cards:
@@ -179,9 +180,10 @@ def normal_player(sock, message):
             global DEALER_ID, TABLE_CARD
             DEALER_ID = message["from_player"]
             MY_CARDS.append(message['data'])
-            print(f"Manilha: {MY_CARDS[4]}")
-            TABLE_CARD = MY_CARDS[4]
-            print(f"Jogador {MY_ID} recebeu suas cartas: {MY_CARDS[:4]}.")
+            print(f"Cartas (total): {MY_CARDS}")    
+            TABLE_CARD = MY_CARDS.pop()
+            print(f"Manilha: {TABLE_CARD}")
+            print(f"Jogador {MY_ID} recebeu suas cartas: {MY_CARDS}.")
             pass_message(sock, message)
         elif message["type"] == "take_guesses":
             guess = take_guess()
@@ -207,7 +209,7 @@ def process_message(sock, message):
     if IS_DEALER:
         dealer(sock, message)
     else:
-        normal_player(socl, message)
+        normal_player(sock, message)
 
 # Função para criar socket UDP
 def create_socket():
