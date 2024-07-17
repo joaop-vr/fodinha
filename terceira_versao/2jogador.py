@@ -62,6 +62,7 @@ def process_message(sock, message):
                 "data": guess
             }
             MY_LIST.append(msg)
+            print(f"fez o append de: {msg}")
             pass_message(sock, message)
         elif message["type"] == "inform_guesses":
             print(f"Palpites:")

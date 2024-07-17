@@ -56,12 +56,13 @@ def process_message(sock, message):
         elif message["type"] == "take_guesses":
             guess = take_guess()
             msg = {
-                "type": "end_guesses",
+                "type": "receive_guesses",
                 "from_player": MY_ID,
                 "to_player": 0,
                 "data": guess
             }
             MY_LIST.append(msg)
+            print(f"Fez o append de: {msg}")
             pass_message(sock, message)
         elif message["type"] == "inform_guesses":
             print(f"Palpites:")

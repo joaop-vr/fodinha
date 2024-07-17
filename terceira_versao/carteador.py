@@ -7,7 +7,7 @@ import random
 MY_ID = 0
 TOKEN = False
 CARDS = []
-GUESSES = []
+GUESSES = [None, None, None, None]
 MY_LIST = []
 MY_CARDS = []
 PLAYERS_IPS = ["10.254.223.40", "10.254.223.41", "10.254.223.42"]
@@ -39,7 +39,7 @@ def init_game(sock):
     #for i in range(3):
 
     # Prepara as mensagens de distribuição de cartas
-    for i in range(1,4):
+    for i in range(4):
         msg = {
             "type": "init",
             "from_player": MY_ID,
@@ -47,9 +47,15 @@ def init_game(sock):
             "data": CARDS[i]
         }
         MY_LIST.append(msg)
+        
+    # Guardando as cartas do carteador
+    global MY_CARDS
+    print(f"len: {len(CARDS)}")
+    MY_CARDS = CARDS.pop(0)
+    #print(f"Cartas do acrteador: {MY_CARDS}")
 
     # Prepara as mensagens de solicitação de palpites
-    for i in range(1,3):
+    for i in range(4):
         msg = {
             "type": "take_guesses",
             "from_player": MY_ID,
@@ -59,7 +65,9 @@ def init_game(sock):
         MY_LIST.append(msg)
 
     # Envia a primeira mensagem da lista
+    print(f"Minha lista inicialmente: {MY_LIST}")
     msg = MY_LIST.pop(0)
+    print(f"Enviando mensagem? {msg}")
     send_message(sock, msg, NEXT_IP, NEXT_PORT)
 
 # Função fictícia para distribuir cartas
@@ -74,69 +82,74 @@ def distribute_cards():
         for j in range(4):
             if cards:
                 players_cards[j].append(cards.pop())
-    
-    # Guardando as cartas do carteador
-    global MY_CARDS
-    MY_CARDS = players_cards.pop(3)
-    print(f"Cartas do acrteador: {MY_CARDS}")
     return players_cards
+
+# Função para o usuário informar o papite
+def take_guess():
+    guess = int(input("Informe o seu palpite: "))
+    return guess
 
 # Função para processar mensagens recebidas
 def process_message(sock, message):
     global TOKEN, MY_LIST, GUESSES
     if TOKEN == True or (message["type"] == "token" and message["to_player"] == MY_ID):
+        TOKEN = True
         print(f"Recebi/estou_com o token!.")
-
-        # Envio das mensagens da lista
-        if message['from_player'] == MY_ID and message['to_player'] != MY_ID:
-            idx = None
-            msg = []
-            # Distribuição de cartas
-            if message['type'] == "init":
-                for i, item in enumerate(MY_LIST):
-                     if item['type'] =="init":
-                        idx = i
-                        break
-                if idx is not None:
-                    msg = MY_LIST.pop(idx)
-
-            # Debug
-            idx = None
-            if message['type'] == "init":
-                for i, item in enumerate(MY_LIST):
-                     if item['type'] =="init":
-                        idx = i
-                        break
-                if idx is  None:
-                    print("Todos os joagdores ja receberam suas cartas!")
-                    print(f"Cartas do Carteador: {MY_CARDS}")
-
-            # Requisição dos palpites
-            if message['type'] == "take_guesses":
-                for i, item in enumerate(MY_LIST):
-                     if item['type'] =="take_guesses":
-                        idx = i
-                        break
-                if idx is not None:
-                    msg = MY_LIST.pop(idx)
-            
-            # Debug
-            idx = None
-            if message['type'] == "take_guesses":
-                for i, item in enumerate(MY_LIST):
-                     if item['type'] =="take_guesses":
-                        idx = i
-                        break
-                if idx is None:
-                    print("Já pedi os palpites para todos os jogadores!")
-                    guess = take_guess()
-                    GUESSES[3] = guess
-
-            send_message(sock, msg, NEXT_IP, NEXT_PORT)
-        
-
+                
         if len(MY_LIST) > 0:
+            # Caso que em o Carteador recebeu a própria mensagem de volta
+            #if message['from_player'] == MY_ID and message['to_player'] != MY_ID:
+            #    idx = None
+            #    msg = []
+            #    # Distribuição de cartas
+            #    if message['type'] == "init":
+            #        for i, item in enumerate(MY_LIST):
+            #            if item['type'] =="init":
+            #                idx = i
+            #                break
+            #        if idx is not None:
+            #            msg = MY_LIST.pop(idx)
+            #        else:
+            #            print("Todos os jogadores ja receberam suas cartas!")
+
+                # Debug
+                #idx = None
+                #if message['type'] == "init":
+                #    for i, item in enumerate(MY_LIST):
+                #         if item['type'] =="init":
+                #            idx = i
+                #            break
+                #    if idx is  None:
+                #        print("Todos os joagdores ja receberam suas cartas!")
+                #        print(f"Cartas do Carteador: {MY_CARDS}")
+
+                # Requisição dos palpites
+             #   elif message['type'] == "take_guesses":
+             #       for i, item in enumerate(MY_LIST):
+             #           if item['type'] =="take_guesses":
+             #               idx = i
+             #               break
+             #       if idx is not None:
+             #           msg = MY_LIST.pop(idx)
+             #       else:
+             #           print("Já pedi os palpites para todos os jogadores!")
+             #           guess = take_guess()
+             #           GUESSES[3] = guess
+                # Debug
+                #idx = None
+                #if message['type'] == "take_guesses":
+                #    for i, item in enumerate(MY_LIST):
+                #         if item['type'] =="take_guesses":
+                #            idx = i
+                #            break
+                #    if idx is None:
+                #        print("Já pedi os palpites para todos os jogadores!")
+                #        guess = take_guess()
+                #        GUESSES[3] = guess
+
+                #send_message(sock, msg, NEXT_IP, NEXT_PORT)
             msg = MY_LIST.pop(0)
+            print(f"Enviando mensagem: {msg}")
             send_message(sock, msg, NEXT_IP, NEXT_PORT)
         else:
             TOKEN = False
@@ -146,15 +159,42 @@ def process_message(sock, message):
                 "to_player": 1,
                 "data": []
             }
+            print(f"Paasando bastão: {msg}")
             send_message(sock, msg, NEXT_IP, NEXT_PORT)
 
     elif message['to_player'] == MY_ID:
-        print(f"Recebi uma mensagem! (To be implementado...)")
-        if message["type"] == "receive_guesses" or message["type"] == "end_guesses":
-            if len(GUESSES) < 3:
-                GUESSES.append(message["data"])
-                print(f"Recebi o seguinte palpite: {message['data']}")
+        print(f"Recebi uma mensagem! {message}")
+        print(f"antes GUESSES: {GUESSES}")
+        if message["type"] == "receive_guesses":
+            #print(f"len: {len(GUESSES)}")
+            #if len(GUESSES) < 4:
+            GUESSES[message['from_player']] = message["data"]
+            print(f"Recebi o seguinte palpite: {message['data']}")
+            print(f"depois GUESSES: {GUESSES}")
+            if message['from_player'] == 3:
+                guess = take_guess()
+                GUESSES[MY_ID] = guess
+                print(f"Palpites completos: {GUESSES}")
+                
+                for i in range(1,4):
+                    msg = {
+                        "type":"inform_guesses",
+                        "from_player": MY_ID,
+                        "to_player": i,
+                        "data": GUESSES
+                    }
+                    MY_LIST.append(msg)
+                #print(f"Vou começar a mandar os palpites: {MY_LIST}")
+                #msg = MY_LIST.pop(0)
+                #print(f"Estou enviando a mensgaem: {msg}")
+                #send_message(sock, msg, NEXT_IP, NEXT_PORT)
                 pass_message(sock, message)
+            else:
+                pass_message(sock, message)
+        elif message['inform_guesses']:
+            print("Palpites: ")
+            for i in range(len(message['data'])):
+                print(f"Jogaor {i+1}: {message['data'][i]}")
     else:
         pass_message(sock, message)
 
