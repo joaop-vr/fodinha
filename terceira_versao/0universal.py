@@ -74,8 +74,7 @@ def distribute_cards():
     cards = [value + suit for suit in suits for value in values]
     random.shuffle(cards)
     players_cards = [[] for _ in range(4)]
-    N = 5  # Defina o número de cartas que deseja distribuir para cada jogador
-    for i in range(N):
+    for i in range(ROUND):
         for j in range(4):
             if cards:
                 players_cards[j].append(cards.pop())
