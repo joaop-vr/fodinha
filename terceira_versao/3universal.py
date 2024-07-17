@@ -22,7 +22,7 @@ NEXT_ID = 0
 
 # Função de inicialização do jogo
 def init_game(sock):
-    global TOKEN, CARDS, MY_LIST, IS_DEALER, ROUND
+    global TOKEN, CARDS, MY_LIST, IS_DEALER, ROUND, TABLE_CARD
 
     # O carteador é o primeiro a receber um token
     TOKEN = True
@@ -51,6 +51,7 @@ def init_game(sock):
     print(f"len: {len(CARDS)}")
     MY_CARDS = CARDS.pop(0)
     print(f"Manilha: {MY_CARDS[4]}")
+    TABLE_CARD = MY_CARDS[4]
     print(f"Cartas do carteador: {MY_CARDS[:4]}")
 
     # Prepara as mensagens de solicitação de palpites
@@ -175,10 +176,11 @@ def normal_player(sock, message):
             send_message(sock, msg, NEXT_IP, NEXT_PORT)
     elif message["to_player"] == MY_ID:
         if message["type"] == "init" and message["to_player"] == MY_ID:
-            global DEALER_ID
+            global DEALER_ID, TABLE_CARD
             DEALER_ID = message["from_player"]
             MY_CARDS.append(message['data'])
             print(f"Manilha: {MY_CARDS[4]}")
+            TABLE_CARD = MY_CARDS[4]
             print(f"Jogador {MY_ID} recebeu suas cartas: {MY_CARDS[:4]}.")
             pass_message(sock, message)
         elif message["type"] == "take_guesses":
