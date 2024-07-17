@@ -91,8 +91,18 @@ def distribute_cards():
     return players_cards
 
 # Função para o usuário informar o papite
-def take_guess():
+def take_guess(count_guesses=0):
     guess = int(input("Informe o seu palpite: "))
+    while guess > len(MY_CARDS):
+        print(f"Não é possível dar um palpite maior que o número de cartas que possui.")
+        guess = int(input("Dê outro palpite: "))
+    if count_guesses != 0:
+        while count_guesses + guess == ROUND:
+            print(f"A soma dos palpites deve ser diferente de {ROUND}.")
+            guess = int(input("Dê outro palpite: "))
+            while guess > len(MY_CARDS):
+                print(f"Não é possível dar um palpite maior que o número de cartas que possui.")
+                guess = int(input("Dê outro palpite: "))
     return guess
 
 # Função para processar as mensagens do dealer
@@ -127,11 +137,14 @@ def dealer(sock, message):
             print(f"Recebi o seguinte palpite: {message['data']}")
             print(f"depois GUESSES: {GUESSES}")
             count_nones = 0
+            count_guesses = 0
             for guess in GUESSES:
                 if guess == None:
                     count_nones = count_nones+1
+                else:
+                    count_guesses = count_guesses + guess
             if count_nones == 1:
-                guess = take_guess()
+                guess = take_guess(count_guesses)
                 GUESSES[MY_ID] = guess
                 print(f"Palpites completos: {GUESSES}")
                 
