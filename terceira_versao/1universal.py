@@ -5,6 +5,7 @@ import random
 
 # Configurações da rede
 ROUND = 0
+TABLE_CARD = 0
 MY_ID = 1
 TOKEN = False
 IS_DEALER = False
@@ -21,7 +22,7 @@ NEXT_ID = 2
 
 # Função de inicialização do jogo
 def init_game(sock):
-    global TOKEN, CARDS, MY_LIST, IS_DEALER, ROUND
+    global TOKEN, CARDS, MY_LIST, IS_DEALER, ROUND, TABLE_CARD
 
     # O carteador é o primeiro a receber um token
     TOKEN = True
@@ -49,7 +50,9 @@ def init_game(sock):
     global MY_CARDS
     print(f"len: {len(CARDS)}")
     MY_CARDS = CARDS.pop(0)
-    #print(f"Cartas do acrteador: {MY_CARDS}")
+    print(f"Manilha: {MY_CARDS[4]}")
+    TABLE_CARD = MY_CARDS[4]
+    print(f"Cartas do carteador: {MY_CARDS[:4]}")
 
     # Prepara as mensagens de solicitação de palpites
     for i in range(4):
@@ -73,11 +76,17 @@ def distribute_cards():
     values = ['A', '2', '3', '4', '5', '6', '7', 'J', 'Q', 'K']
     cards = [value + suit for suit in suits for value in values]
     random.shuffle(cards)
-    players_cards = [[] for _ in range(4)]
-    for i in range(ROUND):
+    players_cards = [[] for _ in range(5)]
+    for i in range(ROUND): # ROUND == número de cartas sorteadas
         for j in range(4):
             if cards:
                 players_cards[j].append(cards.pop())
+
+    # Sorteando a minilha (table_card)
+    random.shuffle(values)
+    table_card = values.pop()
+    for i in range(4):
+        players_cards[i].append(table_card)
     return players_cards
 
 # Função para o usuário informar o papite
@@ -167,10 +176,12 @@ def normal_player(sock, message):
             send_message(sock, msg, NEXT_IP, NEXT_PORT)
     elif message["to_player"] == MY_ID:
         if message["type"] == "init" and message["to_player"] == MY_ID:
-            global DEALER_ID
+            global DEALER_ID, TABLE_CARD
             DEALER_ID = message["from_player"]
             MY_CARDS.append(message['data'])
-            print(f"Jogador {MY_ID} recebeu suas cartas: {MY_CARDS}.")
+            print(f"Manilha: {MY_CARDS[4]}")
+            TABLE_CARD = MY_CARDS[4]
+            print(f"Jogador {MY_ID} recebeu suas cartas: {MY_CARDS[:4]}.")
             pass_message(sock, message)
         elif message["type"] == "take_guesses":
             guess = take_guess()
