@@ -92,19 +92,32 @@ def distribute_cards():
         players_cards[i].append(table_card)
     return players_cards
 
-# Função para o usuário informar o papite
+# Função para o usuário informar o palpite
 def take_guess(count_guesses=0):
-    guess = int(input("Informe o seu palpite: "))
+    # Solicita o palpite do usuário
+    while True:
+        try:
+            guess = int(input("Informe o seu palpite: "))
+            if guess < 0:
+                raise ValueError("O palpite deve ser um inteiro natural (não negativo).")
+            break
+        except ValueError as e:
+            print(f"Entrada inválida: {e}. Tente novamente.")
+
+    # Verifica se o palpite é maior que o número de cartas que possui
     while guess > len(MY_CARDS):
-        print(f"Não é possível dar um palpite maior que o número de cartas que possui.")
+        print("Não é possível dar um palpite maior que o número de cartas que possui.")
         guess = int(input("Dê outro palpite: "))
+    
+    # Verifica se a soma dos palpites é igual ao número de rodadas
     if count_guesses != 0 and ROUND >= 2:
         while count_guesses + guess == ROUND:
             print(f"A soma dos palpites deve ser diferente de {ROUND}.")
             guess = int(input("Dê outro palpite: "))
             while guess > len(MY_CARDS):
-                print(f"Não é possível dar um palpite maior que o número de cartas que possui.")
+                print("Não é possível dar um palpite maior que o número de cartas que possui.")
                 guess = int(input("Dê outro palpite: "))
+
     return guess
 
 # Função para processar as mensagens do dealer
@@ -258,6 +271,7 @@ def receive_message(sock):
 
 def main():
     cards = []
+    print(f"{sys.argv}")
     if len(sys.argv) > 1:
       sock = create_socket(int(sys.argv[1]))
       if len(sys.argv) > 2 and sys.argv[2] == 'start':
