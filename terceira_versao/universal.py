@@ -13,6 +13,7 @@ CARDS = []
 MY_LIST = []
 MY_CARDS = []
 GUESSES = [None, None, None, None]
+MOVES = [None, None, None, None]
 PLAYERS_IPS = ["10.254.223.39", "10.254.223.40", "10.254.223.41", "10.254.223.42"]
 PLAYERS_PORTS = [5039, 5040, 5041, 5042]
 MY_ID = 0
@@ -175,18 +176,26 @@ def dealer(sock, message):
                     "type":"make_move",
                     "from_player": MY_ID,
                     "to_player": (MY_ID+i)%4, # Isso possibilita a universalização do carteador
-                    "data": GUESSES
+                    "data": []
                 }
                 MY_LIST.append(msg)
             msg = {
                 "type":"make_move",
                 "from_player": MY_ID,
                 "to_player": MY_ID, 
-                "data": GUESSES
+                "data": []
             }
             MY_LIST.append(msg)
-            print(f"Mensagens a serem enviadas: {MY_LIST}")
-            a = input("Chegou até aqui!")
+            # print(f"[DEBUG] Mensagens a serem enviadas: {MY_LIST}")
+        elif message["type"] == "make_move":
+            global MOVES
+            move = input("Informe sua jogada: ")
+            MOVES[MY_ID] = move
+        elif message["type"] == "inform_move":
+            global MOVES
+            MOVES[message["from_player"]] = message["data"]
+            pass_message(sock, message)
+
     elif TOKEN == True or (message["type"] == "token" and message["to_player"] == MY_ID):
         TOKEN = True
         print(f"[DEBUG]Recebi/estou_com o token!.")
@@ -250,8 +259,19 @@ def normal_player(sock, message):
             pass_message(sock, message)
         elif message["type"] == "inform_guesses":
             print(f"Palpites:")
-            for i in range(len(message['data'])):
+            for i in range(len(message["data"])):
                 print(f"Jogador {i+1}: {message['data'][i]}.")
+            pass_message(sock, message)
+        elif message["type"] == "make_move":
+            move = input("Infome sua jogada:")
+            msg = {
+                "type": "inform_move",
+                "from_player": MY_ID,
+                "to_player": DEALER_ID,
+                "data": move
+            }
+            MY_LIST.append(msg)
+            print(f"[DEBUG] Fez o append de: {msg}")
             pass_message(sock, message)
     else:
         pass_message(sock, message)
