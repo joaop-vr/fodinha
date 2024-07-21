@@ -123,26 +123,7 @@ def take_guess(count_guesses=0):
 # Função para processar as mensagens do dealer
 def dealer(sock, message):
     global TOKEN, MY_LIST, GUESSES
-    if TOKEN == True or (message["type"] == "token" and message["to_player"] == MY_ID):
-        TOKEN = True
-        print(f"[DEBUG]Recebi/estou_com o token!.")
-                
-        if len(MY_LIST) > 0:
-            msg = MY_LIST.pop(0)
-            print(f"[DEBUG] Enviando mensagem: {msg}")
-            send_message(sock, msg, NEXT_IP, NEXT_PORT)
-        else:
-            TOKEN = False
-            msg = {
-                "type": "token",
-                "from_player": MY_ID,
-                "to_player": NEXT_ID,
-                "data": []
-            }
-            print(f"[DEBUG] Paasando bastão: {msg}")
-            send_message(sock, msg, NEXT_IP, NEXT_PORT)
-
-    elif message['to_player'] == MY_ID:
+    if message["type"] != "token" and message["to_player"] == MY_ID
         print(f"[DEBUG] Recebi uma mensagem! {message}")
         if message["type"] == "receive_guesses":
             # Armazena o palpite
@@ -206,6 +187,24 @@ def dealer(sock, message):
             MY_LIST.append(msg)
             print(f"Mensagens a serem enviadas: {MY_LIST}")
             a = input("Chegou até aqui!")
+    elif TOKEN == True or (message["type"] == "token" and message["to_player"] == MY_ID):
+        TOKEN = True
+        print(f"[DEBUG]Recebi/estou_com o token!.")
+                
+        if len(MY_LIST) > 0:
+            msg = MY_LIST.pop(0)
+            print(f"[DEBUG] Enviando mensagem: {msg}")
+            send_message(sock, msg, NEXT_IP, NEXT_PORT)
+        else:
+            TOKEN = False
+            msg = {
+                "type": "token",
+                "from_player": MY_ID,
+                "to_player": NEXT_ID,
+                "data": []
+            }
+            print(f"[DEBUG] Paasando bastão: {msg}")
+            send_message(sock, msg, NEXT_IP, NEXT_PORT)
     else:
         pass_message(sock, message)
 
