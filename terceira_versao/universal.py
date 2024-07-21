@@ -39,38 +39,38 @@ def init_game(sock):
     IS_DEALER = True
 
     # Prepara as mensagens de distribuição de cartas
-    for i in range(4):
+    for i in range(1,4):
         msg = {
             "type": "init",
             "from_player": MY_ID,
-            "to_player": i,
+            "to_player": (MY_ID+i)%4, # Isso possibilita a universalização do carteador
             "data": CARDS[i]
         }
         MY_LIST.append(msg)
         
     # Guardando as cartas do carteador
     global MY_CARDS
-    print(f"len: {len(CARDS)}")
+    # print(f"[DEBUG] len: {len(CARDS)}")
     MY_CARDS = CARDS.pop(0)
-    print(f"Cartas (total): {MY_CARDS}")    
+    # print(f"[DEBUG] Cartas (total): {MY_CARDS}")    
     TABLE_CARD = MY_CARDS.pop()
     print(f"Manilha: {TABLE_CARD}")
     print(f"Cartas do carteador: {MY_CARDS}")
 
     # Prepara as mensagens de solicitação de palpites
-    for i in range(4):
+    for i in range(1,4):
         msg = {
             "type": "take_guesses",
             "from_player": MY_ID,
-            "to_player": (MY_ID+i)%4,
+            "to_player": (MY_ID+i)%4, # Isso possibilita a universalização do carteador
             "data": []
         }
         MY_LIST.append(msg)
 
     # Envia a primeira mensagem da lista
-    print(f"Minha lista inicialmente: {MY_LIST}")
+    # print(f"[DEBUG] Minha lista inicialmente: {MY_LIST}")
     msg = MY_LIST.pop(0)
-    print(f"Enviando mensagem? {msg}")
+    # print(f"[DEBUG] Enviando mensagem? {msg}")
     send_message(sock, msg, NEXT_IP, NEXT_PORT)
 
 # Função fictícia para distribuir cartas
@@ -125,11 +125,11 @@ def dealer(sock, message):
     global TOKEN, MY_LIST, GUESSES
     if TOKEN == True or (message["type"] == "token" and message["to_player"] == MY_ID):
         TOKEN = True
-        print(f"Recebi/estou_com o token!.")
+        print(f"[DEBUG]Recebi/estou_com o token!.")
                 
         if len(MY_LIST) > 0:
             msg = MY_LIST.pop(0)
-            print(f"Enviando mensagem: {msg}")
+            print(f"[DEBUG] Enviando mensagem: {msg}")
             send_message(sock, msg, NEXT_IP, NEXT_PORT)
         else:
             TOKEN = False
@@ -139,18 +139,17 @@ def dealer(sock, message):
                 "to_player": NEXT_ID,
                 "data": []
             }
-            print(f"Paasando bastão: {msg}")
+            print(f"[DEBUG] Paasando bastão: {msg}")
             send_message(sock, msg, NEXT_IP, NEXT_PORT)
 
     elif message['to_player'] == MY_ID:
-        print(f"Recebi uma mensagem! {message}")
-        print(f"antes GUESSES: {GUESSES}")
+        print(f"[DEBUG] Recebi uma mensagem! {message}")
         if message["type"] == "receive_guesses":
-            #print(f"len: {len(GUESSES)}")
-            #if len(GUESSES) < 4:
+            # Armazena o palpite
             GUESSES[message['from_player']] = message["data"]
-            print(f"Recebi o seguinte palpite: {message['data']}")
-            print(f"depois GUESSES: {GUESSES}")
+            # print(f"[DEBUG]Recebi o seguinte palpite: {message['data']}")
+            # Contabiliza a quantidade de palpites já recebidos para saber se está
+            # na hora do carteador dar o seu palpite (ele é o último a afazer)
             count_nones = 0
             count_guesses = 0
             for guess in GUESSES:
@@ -158,19 +157,27 @@ def dealer(sock, message):
                     count_nones = count_nones+1
                 else:
                     count_guesses = count_guesses + guess
-            if count_nones == 1:
+            if count_nones == 1: # Só falta um palpite: o do carteador
                 guess = take_guess(count_guesses)
                 GUESSES[MY_ID] = guess
-                print(f"Palpites completos: {GUESSES}")
-                
+                # print(f"[DEBUG] Palpites completos: {GUESSES}")
+                # Preparo das mensagens com a info dos palpites 
+                # de forma a deixar o carteador por último
                 for i in range(1,4):
                     msg = {
                         "type":"inform_guesses",
                         "from_player": MY_ID,
-                        "to_player": i,
+                        "to_player": (MY_ID+i)%4, # Isso possibilita a universalização do carteador
                         "data": GUESSES
                     }
                     MY_LIST.append(msg)
+                msg = {
+                    "type":"inform_guesses",
+                    "from_player": MY_ID,
+                    "to_player": MY_ID, 
+                    "data": GUESSES
+                }
+                MY_LIST.append(msg)
                 #print(f"Vou começar a mandar os palpites: {MY_LIST}")
                 #msg = MY_LIST.pop(0)
                 #print(f"Estou enviando a mensgaem: {msg}")
@@ -181,6 +188,24 @@ def dealer(sock, message):
             print("Palpites: ")
             for i in range(len(message['data'])):
                 print(f"Jogaor {i+1}: {message['data'][i]}")
+            # Prepara as mensagens solicitando que façam um movimento
+            for i in range(1,4):
+                msg = {
+                    "type":"make_move",
+                    "from_player": MY_ID,
+                    "to_player": (MY_ID+i)%4, # Isso possibilita a universalização do carteador
+                    "data": GUESSES
+                }
+                MY_LIST.append(msg)
+            msg = {
+                "type":"make_move",
+                "from_player": MY_ID,
+                "to_player": MY_ID, 
+                "data": GUESSES
+            }
+            MY_LIST.append(msg)
+            print(f"Mensagens a serem enviadas: {MY_LIST}")
+            a = input("Chegou até aqui!")
     else:
         pass_message(sock, message)
 
@@ -191,7 +216,7 @@ def normal_player(sock, message):
         TOKEN = True
         if len(MY_LIST) > 0:
             msg = MY_LIST.pop(0)
-            print(f"Estou enviando a mensagem: {msg}")
+            print(f"[DEBUG] Estou enviando a mensagem: {msg}")
             send_message(sock, msg, NEXT_IP, NEXT_PORT)
         else:
             TOKEN = False
@@ -201,14 +226,14 @@ def normal_player(sock, message):
                 "to_player": NEXT_ID,
                 "data": []
             }
-            print(f"Estou passando o bastao: {msg}")
+            print(f"[DEBUG] Estou passando o bastao: {msg}")
             send_message(sock, msg, NEXT_IP, NEXT_PORT)
     elif message["to_player"] == MY_ID:
         if message["type"] == "init" and message["to_player"] == MY_ID:
             global DEALER_ID, TABLE_CARD
             DEALER_ID = message["from_player"]
             MY_CARDS = message['data']
-            print(f"Cartas (total): {MY_CARDS}")    
+            # print(f"[DEBUG] Cartas (total): {MY_CARDS}")    
             TABLE_CARD = MY_CARDS.pop()
             print(f"Manilha: {TABLE_CARD}")
             print(f"Jogador {MY_ID} recebeu suas cartas: {MY_CARDS}.")
@@ -222,7 +247,7 @@ def normal_player(sock, message):
                 "data": guess
             }
             MY_LIST.append(msg)
-            print(f"Fez o appende de: {msg}")
+            print(f"[DEBUG] Fez o appende de: {msg}")
             pass_message(sock, message)
         elif message["type"] == "inform_guesses":
             print(f"Palpites:")
@@ -250,8 +275,8 @@ def create_socket(num_player):
     NEXT_IP = PLAYERS_IPS[NEXT_ID]
     NEXT_PORT = PLAYERS_PORTS[NEXT_ID]
     sock.bind((MY_IP, MY_PORT))
-    print(f"MY_ID: {MY_ID}, MY_IP: {MY_IP}, MY_PORT: {MY_PORT}")
-    print(f"NEXT_ID: {NEXT_ID}, NEXT_IP: {NEXT_IP}, NEXT_PORT: {NEXT_PORT}")
+    print(f"[DEBUG] MY_ID: {MY_ID}, MY_IP: {MY_IP}, MY_PORT: {MY_PORT}")
+    print(f"[DEBUG] NEXT_ID: {NEXT_ID}, NEXT_IP: {NEXT_IP}, NEXT_PORT: {NEXT_PORT}")
     return sock
 
 # Função para enviar mensagem UDP
@@ -271,7 +296,6 @@ def receive_message(sock):
 
 def main():
     cards = []
-    print(f"{sys.argv}")
     if len(sys.argv) > 1:
       sock = create_socket(int(sys.argv[1]))
       if len(sys.argv) > 2 and sys.argv[2] == 'start':
