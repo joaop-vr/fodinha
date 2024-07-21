@@ -123,7 +123,7 @@ def take_guess(count_guesses=0):
 # Função para processar as mensagens do dealer
 def dealer(sock, message):
     global TOKEN, MY_LIST, GUESSES
-    if message["type"] != "token" and message["to_player"] == MY_ID
+    if message["type"] != "token" and message["to_player"] == MY_ID:
         print(f"[DEBUG] Recebi uma mensagem! {message}")
         if message["type"] == "receive_guesses":
             # Armazena o palpite
@@ -165,7 +165,7 @@ def dealer(sock, message):
                 pass_message(sock, message)
             else:
                 pass_message(sock, message)
-        elif message['inform_guesses']:
+        elif message['type'] == "inform_guesses":
             print("Palpites: ")
             for i in range(len(message['data'])):
                 print(f"Jogaor {i+1}: {message['data'][i]}")
