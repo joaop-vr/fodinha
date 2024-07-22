@@ -124,7 +124,7 @@ def take_guess(count_guesses=0):
 # Função para processar as mensagens do dealer
 def dealer(sock, message):
     global TOKEN, MY_LIST, GUESSES, GLOBAL
-    if message["type"] != "token":
+    if TOKEN == False and message["type"] != "token":
         print(f"[DEBUG] Recebi uma mensagem! {message}")
         if message["from_player"] != MY_ID message["to_player"] == MY_ID:
             if message["type"] == "receive_guesses":
