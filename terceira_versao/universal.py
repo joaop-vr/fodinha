@@ -29,7 +29,7 @@ def init_game(sock):
 
     # O carteador é o primeiro a receber um token
     TOKEN = True
-    
+
     # Contador de rodadas
     ROUND = ROUND + 1
 
@@ -40,20 +40,18 @@ def init_game(sock):
     IS_DEALER = True
 
     # Prepara as mensagens de distribuição de cartas
-    for i in range(1,4):
+    for i in range(1, 4):
         msg = {
             "type": "init",
             "from_player": MY_ID,
-            "to_player": (MY_ID+i)%4, # Isso possibilita a universalização do carteador
+            "to_player": (MY_ID + i) % 4,  # Isso possibilita a universalização do carteador
             "data": CARDS[i]
         }
         MY_LIST.append(msg)
-        
+
     # Guardando as cartas do carteador
     global MY_CARDS
-    # print(f"[DEBUG] len: {len(CARDS)}")
     MY_CARDS = CARDS.pop(0)
-    # print(f"[DEBUG] Cartas (total): {MY_CARDS}")    
     TABLE_CARD = MY_CARDS.pop()
     print(f"Manilha: {TABLE_CARD}")
     print(f"Cartas do carteador: {MY_CARDS}")
@@ -63,21 +61,20 @@ def init_game(sock):
         msg = {
             "type": "take_guesses",
             "from_player": MY_ID,
-            "to_player": (MY_ID+i)%4, # Isso possibilita a universalização do carteador
+            "to_player": (MY_ID + i) % 4,  # Isso possibilita a universalização do carteador
             "data": []
         }
         MY_LIST.append(msg)
-    msg = {
-        "type":"take_guesses",
-        "from_player": MY_ID,
-        "to_player": MY_ID, 
-        "data": []
-    }
-    MY_LIST.append(msg)
+    #msg = {
+    #    "type":"take_guesses",
+    #    "from_player": MY_ID,
+    #    "to_player": MY_ID,
+    #    "data": []
+    #}
+    #MY_LIST.append(msg)
+
     # Envia a primeira mensagem da lista
-    # print(f"[DEBUG] Minha lista inicialmente: {MY_LIST}")
     msg = MY_LIST.pop(0)
-    # print(f"[DEBUG] Enviando mensagem? {msg}")
     send_message(sock, msg, NEXT_IP, NEXT_PORT)
 
 # Função fictícia para distribuir cartas
@@ -87,12 +84,12 @@ def distribute_cards():
     cards = [value + suit for suit in suits for value in values]
     random.shuffle(cards)
     players_cards = [[] for _ in range(4)]
-    for i in range(ROUND): # ROUND == número de cartas sorteadas
+    for i in range(ROUND):  # ROUND == número de cartas sorteadas
         for j in range(4):
             if cards:
                 players_cards[j].append(cards.pop())
 
-    # Sorteando a minilha (table_card)
+    # Sorteando a manilha (table_card)
     random.shuffle(values)
     table_card = values.pop()
     for i in range(4):
@@ -115,7 +112,7 @@ def take_guess(count_guesses=0):
     while guess > len(MY_CARDS):
         print("Não é possível dar um palpite maior que o número de cartas que possui.")
         guess = int(input("Dê outro palpite: "))
-    
+
     # Verifica se a soma dos palpites é igual ao número de rodadas
     if count_guesses != 0 and ROUND >= 2:
         while count_guesses + guess == ROUND:
@@ -127,47 +124,107 @@ def take_guess(count_guesses=0):
 
     return guess
 
+# Função para processar as mensagens do dealer
 def dealer(sock, message):
-    global TOKEN, MY_LIST, GUESSES, MOVES
-    if message["type"] != "token" and message["to_player"] == MY_ID:
-        print(f"[DEBUG] Recebi uma mensagem! {message}")
+    global TOKEN, MY_LIST, GUESSES, GLOBAL
+    print(f"MINHA LISTA AGR: {MY_LIST}")
+    print(f"[DEBUG] Recebi uma mensagem! {message}")
+    if message["type"] != "token" and message["from_player"] != MY_ID and message["to_player"] == MY_ID:
         if message["type"] == "receive_guesses":
-            GUESSES[message['from_player']] = message["data"]
-            count_nones = GUESSES.count(None)
-            count_guesses = sum([g for g in GUESSES if g is not None])
-            if count_nones == 1:
-                guess = take_guess(count_guesses)
+            # Armazena o palpite
+            if message["from_player"] != (MY_ID+3)%4:
+                GUESSES[message['from_player']] = message["data"]
+                print(f"Palpites atualemente: {GUESSES} !!!!!")
+                print(f"Passando a mensagem: {message}")
+                pass_message(sock, message)
+            else:
+                GUESSES[message["from_player"]] = message["data"]
+                guess = take_guess(1)
                 GUESSES[MY_ID] = guess
-                for i in range(1, 4):
+                print(f"[DEBUG] Palpites completos: {GUESSES}")
+                # Preparo das mensagens com a info dos palpites
+                # de forma a deixar o carteador por último
+                for i in range(1,4):
                     msg = {
-                        "type": "inform_guesses",
+                        "type":"inform_guesses",
                         "from_player": MY_ID,
-                        "to_player": (MY_ID + i) % 4,
+                        "to_player": (MY_ID+i)%4, # Isso possibilita a universalização do carteador
                         "data": GUESSES
                     }
                     MY_LIST.append(msg)
+                    print(f"[DEBUG] Fez o appende de: {msg}")
                 msg = {
-                    "type": "inform_guesses",
+                    "type":"inform_guesses",
                     "from_player": MY_ID,
                     "to_player": MY_ID,
                     "data": GUESSES
                 }
                 MY_LIST.append(msg)
+                print(f"[DEBUG] Fez o appende de: {msg}")
+                #print(f"Vou começar a mandar os palpites: {MY_LIST}")
+                #msg = MY_LIST.pop(0)
+                #print(f"Estou enviando a mensgaem: {msg}")
                 pass_message(sock, message)
-            else:
-                pass_message(sock, message)
-        elif message['type'] == "inform_guesses":
+        elif message["type"] == "inform_move":
+            MOVES[message["from_player"]] = message["data"]
+            print(f"Passando a mensagem: {message}")
+            pass_message(sock, message)
+        else:
+            print(f"Passando a mensagem: {message}")
+            pass_message(sock, message)
+    elif message["from_player"] == MY_ID and message["to_player"] == MY_ID:
+        #if message["type"] == "take_guesses":
+        #    guess = take_guess(1)
+        #    GUESSES[MY_ID] = guess
+        #    print(f"Palpites completos: {GUESSES}")
+        #    TOKEN = False
+        #    msg = {
+        #        "type": "token",
+        #        "from_player": MY_ID,
+        #        "to_player": NEXT_ID,
+        #        "data": []
+        #   }
+        #    print(f"[DEBUG] Paasando bastão: {msg}")
+        #    send_message(sock, msg, NEXT_IP, NEXT_PORT)
+        #if message["type"] == "receive_guesses":
+        #    guess = take_guess(1)
+        #    GUESSES[MY_ID] = guess
+        #    print(f"palpites completos: {GUESSES}")
+        #    # Preparo das mensagens com a info dos palpites 
+        #    # de forma a deixar o carteador por último
+        #    for i in range(1, 4):
+        #        msg = {
+        #            "type": "inform_guesses",
+        #            "from_player": MY_ID,
+        #            "to_player": (MY_ID + i) % 4,  # Isso possibilita a universalização do carteador
+        #            "data": GUESSES
+        #        }
+        #        MY_LIST.append(msg)
+        #        print(f"[DEBUG] Fez o append de: {msg}")
+        #    msg = {
+        #        "type": "inform_guesses",
+        #        "from_player": MY_ID,
+        #        "to_player": MY_ID,
+        #        "data": GUESSES
+        #    }
+        #    MY_LIST.append(msg)
+        #    print(f"[DEBUG] Fez o append de: {msg}")
+        #    print(f"Passando a mensagem: {message}")
+        #    pass_message(sock, message)
+        if message['type'] == "inform_guesses":
             print("Palpites: ")
             for i in range(len(message['data'])):
-                print(f"Jogador {i+1}: {message['data'][i]}")
+                print(f"Jogador {i + 1}: {message['data'][i]}")
+            # Prepara as mensagens solicitando que façam um movimento
             for i in range(1, 4):
                 msg = {
                     "type": "make_move",
                     "from_player": MY_ID,
-                    "to_player": (MY_ID + i) % 4,
+                    "to_player": (MY_ID + i) % 4,  # Isso possibilita a universalização do carteador
                     "data": []
                 }
                 MY_LIST.append(msg)
+                print(f"[DEBUG] Fez o append de: {msg}")
             msg = {
                 "type": "make_move",
                 "from_player": MY_ID,
@@ -175,17 +232,31 @@ def dealer(sock, message):
                 "data": []
             }
             MY_LIST.append(msg)
+            print(f"[DEBUG] Fez o append de: {msg}")
+            TOKEN = False
+            msg = {
+                "type": "token",
+                "from_player": MY_ID,
+                "to_player": NEXT_ID,
+                "data": []
+            }
+            print(f"[DEBUG] Passando bastão: {msg}")
+            send_message(sock, msg, NEXT_IP, NEXT_PORT)
         elif message["type"] == "make_move":
             move = input("Informe sua jogada: ")
             MOVES[MY_ID] = move
-        elif message["type"] == "inform_move":
-            MOVES[message["from_player"]] = message["data"]
+            print(f"[DEBUG] MOVIMENTOS: {MOVES}")
+            a = input("Chegou até aqui!")
+        else:
+            print(f"Passando a mensagem: {message}")
             pass_message(sock, message)
-
     elif TOKEN == True or (message["type"] == "token" and message["to_player"] == MY_ID):
         TOKEN = True
+        print(f"[DEBUG] Recebi/estou com o token!")
+
         if len(MY_LIST) > 0:
             msg = MY_LIST.pop(0)
+            print(f"[DEBUG] Enviando mensagem: {msg}")
             send_message(sock, msg, NEXT_IP, NEXT_PORT)
         else:
             TOKEN = False
@@ -195,10 +266,10 @@ def dealer(sock, message):
                 "to_player": NEXT_ID,
                 "data": []
             }
+            print(f"[DEBUG] Passando bastão: {msg}")
             send_message(sock, msg, NEXT_IP, NEXT_PORT)
     else:
         pass_message(sock, message)
-
 
 # Função para processar as mensagens do jogador padrão
 def normal_player(sock, message):
@@ -217,15 +288,14 @@ def normal_player(sock, message):
                 "to_player": NEXT_ID,
                 "data": []
             }
-            print(f"[DEBUG] Estou passando o bastao: {msg}")
+            print(f"[DEBUG] Estou passando o bastão: {msg}")
             send_message(sock, msg, NEXT_IP, NEXT_PORT)
     elif message["to_player"] == MY_ID:
-        print(f"recebi uma mensageM: {message}")
+        print(f"Recebi uma mensagem: {message}")
         if message["type"] == "init" and message["to_player"] == MY_ID:
             global DEALER_ID, TABLE_CARD
             DEALER_ID = message["from_player"]
             MY_CARDS = message['data']
-            # print(f"[DEBUG] Cartas (total): {MY_CARDS}")    
             TABLE_CARD = MY_CARDS.pop()
             print(f"Manilha: {TABLE_CARD}")
             print(f"Jogador {MY_ID} recebeu suas cartas: {MY_CARDS}.")
@@ -239,15 +309,15 @@ def normal_player(sock, message):
                 "data": guess
             }
             MY_LIST.append(msg)
-            print(f"[DEBUG] Fez o appende de: {msg}")
+            print(f"[DEBUG] Fez o append de: {msg}")
             pass_message(sock, message)
         elif message["type"] == "inform_guesses":
             print(f"Palpites:")
             for i in range(len(message["data"])):
-                print(f"Jogador {i+1}: {message['data'][i]}.")
+                print(f"Jogador {i + 1}: {message['data'][i]}.")
             pass_message(sock, message)
         elif message["type"] == "make_move":
-            move = input("Infome sua jogada:")
+            move = input("Informe sua jogada:")
             msg = {
                 "type": "inform_move",
                 "from_player": MY_ID,
@@ -259,7 +329,7 @@ def normal_player(sock, message):
             pass_message(sock, message)
     else:
         pass_message(sock, message)
-  
+
 # Função para processar mensagens recebidas
 def process_message(sock, message):
     if IS_DEALER:
@@ -271,10 +341,10 @@ def process_message(sock, message):
 def create_socket(num_player):
     global MY_ID, MY_IP, MY_PORT, NEXT_ID, NEXT_IP, NEXT_PORT
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    MY_ID = num_player-1
+    MY_ID = num_player - 1
     MY_IP = PLAYERS_IPS[MY_ID]
     MY_PORT = PLAYERS_PORTS[MY_ID]
-    NEXT_ID = (MY_ID+1)%4
+    NEXT_ID = (MY_ID + 1) % 4
     NEXT_IP = PLAYERS_IPS[NEXT_ID]
     NEXT_PORT = PLAYERS_PORTS[NEXT_ID]
     sock.bind((MY_IP, MY_PORT))
@@ -285,7 +355,7 @@ def create_socket(num_player):
 # Função para enviar mensagem UDP
 def send_message(sock, message, ip, port):
     sock.sendto(json.dumps(message).encode(), (ip, port))
-    
+
 # Função para passar a mensagem adiante
 def pass_message(sock, message):
     send_message(sock, message, NEXT_IP, NEXT_PORT)
@@ -300,14 +370,15 @@ def receive_message(sock):
 def main():
     cards = []
     if len(sys.argv) > 1:
-      sock = create_socket(int(sys.argv[1]))
-      if len(sys.argv) > 2 and sys.argv[2] == 'start':
-          init_game(sock)
-      receive_message(sock)
+        sock = create_socket(int(sys.argv[1]))
+        if len(sys.argv) > 2 and sys.argv[2] == 'start':
+            init_game(sock)
+        receive_message(sock)
     else:
         print("O código espera receber como parâmetro: python3 universal.py <num_jogador> <start>")
-        print("Sendo o segundo parãmetro opcional, pois indica quem será o primeiro carteador.")
+        print("Sendo o segundo parâmetro opcional, pois indica quem será o primeiro carteador.")
         sys.exit(1)
 
 if __name__ == "__main__":
     main()
+
