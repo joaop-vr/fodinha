@@ -123,7 +123,7 @@ def take_guess(count_guesses=0):
 
 # Função para processar as mensagens do dealer
 def dealer(sock, message):
-    global TOKEN, MY_LIST, GUESSES
+    global TOKEN, MY_LIST, GUESSES, GLOBAL
     if message["type"] != "token" and message["to_player"] == MY_ID:
         print(f"[DEBUG] Recebi uma mensagem! {message}")
         if message["type"] == "receive_guesses":
@@ -153,6 +153,7 @@ def dealer(sock, message):
                         "data": GUESSES
                     }
                     MY_LIST.append(msg)
+                    print(f"[DEBUG] Fez o appende de: {msg}")
                 msg = {
                     "type":"inform_guesses",
                     "from_player": MY_ID,
@@ -160,6 +161,7 @@ def dealer(sock, message):
                     "data": GUESSES
                 }
                 MY_LIST.append(msg)
+                print(f"[DEBUG] Fez o appende de: {msg}")
                 #print(f"Vou começar a mandar os palpites: {MY_LIST}")
                 #msg = MY_LIST.pop(0)
                 #print(f"Estou enviando a mensgaem: {msg}")
@@ -179,6 +181,7 @@ def dealer(sock, message):
                     "data": []
                 }
                 MY_LIST.append(msg)
+                print(f"[DEBUG] Fez o appende de: {msg}")
             msg = {
                 "type":"make_move",
                 "from_player": MY_ID,
@@ -186,13 +189,22 @@ def dealer(sock, message):
                 "data": []
             }
             MY_LIST.append(msg)
+            print(f"[DEBUG] Fez o appende de: {msg}")
+            TOKEN = False
+            msg = {
+                "type": "token",
+                "from_player": MY_ID,
+                "to_player": NEXT_ID,
+                "data": []
+            }
+            print(f"[DEBUG] Paasando bastão: {msg}")
+            send_message(sock, msg, NEXT_IP, NEXT_PORT)
+            # pass_message(sock, message)
             # print(f"[DEBUG] Mensagens a serem enviadas: {MY_LIST}")
         elif message["type"] == "make_move":
-            global MOVES
             move = input("Informe sua jogada: ")
             MOVES[MY_ID] = move
         elif message["type"] == "inform_move":
-            global MOVES
             MOVES[message["from_player"]] = message["data"]
             pass_message(sock, message)
 
@@ -237,6 +249,7 @@ def normal_player(sock, message):
             print(f"[DEBUG] Estou passando o bastao: {msg}")
             send_message(sock, msg, NEXT_IP, NEXT_PORT)
     elif message["to_player"] == MY_ID:
+        print(f"recebi uma mensageM: {message}")
         if message["type"] == "init" and message["to_player"] == MY_ID:
             global DEALER_ID, TABLE_CARD
             DEALER_ID = message["from_player"]
