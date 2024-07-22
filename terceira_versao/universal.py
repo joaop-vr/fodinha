@@ -166,9 +166,19 @@ def dealer(sock, message):
                 #print(f"Estou enviando a mensgaem: {msg}")
                 pass_message(sock, message)
         elif message["type"] == "inform_move":
-            MOVES[message["from_player"]] = message["data"]
-            print(f"Passando a mensagem: {message}")
-            pass_message(sock, message)
+            if message["from-player"] != (MY_ID+3)%4:
+                MOVES[message["from-player"]] = message["data"]
+                print(f"Passando a mensagem: {message}")
+                pass_message(sock, message)
+            else:
+                MOVES[message["from_player"]] = message["data"]
+                move = make_move()
+                MOVES[MY_ID] = move
+                print(f"Todo mundo ja fez a jogada: {MOVES}")
+                print("Agr precisamos estabelecer quem ganhou a rodada e avisar aos demais.... To be implementado....")
+                a = input("Chegoooou até aquiii")
+                #print(f"Passando a mensagem: {message}")
+                #pass_message(sock, message)
         else:
             print(f"Passando a mensagem: {message}")
             pass_message(sock, message)
@@ -225,14 +235,14 @@ def dealer(sock, message):
                 }
                 MY_LIST.append(msg)
                 print(f"[DEBUG] Fez o append de: {msg}")
-            msg = {
-                "type": "make_move",
-                "from_player": MY_ID,
-                "to_player": MY_ID,
-                "data": []
-            }
-            MY_LIST.append(msg)
-            print(f"[DEBUG] Fez o append de: {msg}")
+            #msg = {
+            #    "type": "make_move",
+            #    "from_player": MY_ID,
+            #    "to_player": MY_ID,
+            #    "data": []
+            #}
+            #MY_LIST.append(msg)
+            #print(f"[DEBUG] Fez o append de: {msg}")
             TOKEN = False
             msg = {
                 "type": "token",
@@ -242,7 +252,7 @@ def dealer(sock, message):
             }
             print(f"[DEBUG] Passando bastão: {msg}")
             send_message(sock, msg, NEXT_IP, NEXT_PORT)
-        elif message["type"] == "make_move":
+        elif message["type"] == "make_move": # ISSO AQUI NAO DEVE ESTAR MAIS SENDO USADO !!!
             move = input("Informe sua jogada: ")
             MOVES[MY_ID] = move
             print(f"[DEBUG] MOVIMENTOS: {MOVES}")
@@ -317,6 +327,7 @@ def normal_player(sock, message):
                 print(f"Jogador {i + 1}: {message['data'][i]}.")
             pass_message(sock, message)
         elif message["type"] == "make_move":
+            definir a função make_move, que atualiza TABLE_CARD e  precisa verificar se o jogador que fazer a jogada e se é possivel fazê-la [-1: se nao quiser/puder fazer; move: se puder e quiser fazer] 
             move = input("Informe sua jogada:")
             msg = {
                 "type": "inform_move",
