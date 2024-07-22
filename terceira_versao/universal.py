@@ -126,7 +126,7 @@ def dealer(sock, message):
     global TOKEN, MY_LIST, GUESSES, GLOBAL
     if TOKEN == False and message["type"] != "token":
         print(f"[DEBUG] Recebi uma mensagem! {message}")
-        if message["from_player"] != MY_ID message["to_player"] == MY_ID:
+        if message["from_player"] != MY_ID and message["to_player"] == MY_ID:
             if message["type"] == "receive_guesses":
                 # Armazena o palpite
                 GUESSES[message['from_player']] = message["data"]
@@ -139,7 +139,7 @@ def dealer(sock, message):
             else:
                 print(f"Passando a mensagem: {message}")
                 pass_message(sock, message)
-        elif message["from_player"] == MY_ID message["to_player"] == MY_ID:
+        elif message["from_player"] == MY_ID and  message["to_player"] == MY_ID:
             if message["type"] == "receive_guesses":
                 guess = take_guess(count_guesses)
                 GUESSES[MY_ID] = guess
