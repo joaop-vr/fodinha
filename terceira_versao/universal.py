@@ -67,7 +67,13 @@ def init_game(sock):
             "data": []
         }
         MY_LIST.append(msg)
-
+    msg = {
+        "type":"take_guesses",
+        "from_player": MY_ID,
+        "to_player": MY_ID, 
+        "data": []
+    }
+    MY_LIST.append(msg)
     # Envia a primeira mensagem da lista
     # print(f"[DEBUG] Minha lista inicialmente: {MY_LIST}")
     msg = MY_LIST.pop(0)
