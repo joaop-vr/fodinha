@@ -14,6 +14,7 @@ MY_LIST = []
 MY_CARDS = []
 GUESSES = [None, None, None, None]
 MOVES = [None, None, None, None]
+COUNT_MOVES = [0, 0, 0, 0]
 PLAYERS_IPS = ["10.254.223.39", "10.254.223.40", "10.254.223.41", "10.254.223.42"]
 PLAYERS_PORTS = [5039, 5040, 5041, 5042]
 MY_ID = 0
@@ -124,9 +125,49 @@ def take_guess(count_guesses=0):
 
     return guess
 
+def make_move():
+    global MY_CARDS, TABLE_CARD
+    ordered_cards = ['AE', '2E', '3E', '4E', '5E', '6E', '7E', 'JE', 'QE', 'KE', 
+                     'AC', '2C', '3C', '4C', '5C', '6C', '7C', 'JC', 'QC', 'KC', 
+                     'AO', '2O', '3O', '4O', '5O', '6O', '7O', 'JO', 'QO', 'KO', 
+                     'AP', '2P', '3P', '4P', '5P', '6P', '7P', 'JP', 'QP', 'KP']
+
+    move = {}
+    is_playing = False
+    response = input("Gostaria de fazer a jogada? [S/N]\nSe optar por não jogar, você passará sua vez! ")
+    
+    while len(move) == 0 and (response.lower() in ["s", "sim"]):
+        target = input("Informe a carta de sua jogada: ").upper()
+        
+        if target in MY_CARDS:
+            print(f'[DEBUG] {target} está presente nas cartas que possui.')
+            
+            target_index = ordered_cards.index(target)
+            table_card_index = ordered_cards.index(TABLE_CARD)
+            
+            if target_index > table_card_index:
+                MY_CARDS.pop(target_index)
+                TABLE_CARD = target
+                move = target
+                print(f'Você jogou {target}.')
+            else:
+                print(f'A carta selecionada é mais fraca que {TABLE_CARD}! Tente novamente.')
+        else:
+            print(f'{target} não está presente nas cartas que possui: {MY_CARDS}. Tente novamente.')
+        
+        #if len(move) == 0:
+        #    response = input("Gostaria de tentar novamente? [S/N] ")
+    
+    if response.lower() in ["n", "não", "nao"]:
+        print("Você passou a sua vez.")
+        move = -1
+    
+    return move
+
+
 # Função para processar as mensagens do dealer
 def dealer(sock, message):
-    global TOKEN, MY_LIST, GUESSES, GLOBAL
+    global TOKEN, MY_LIST, GUESSES, GLOBAL, MOVES, COUNT_MOVES
     print(f"MINHA LISTA AGR: {MY_LIST}")
     print(f"[DEBUG] Recebi uma mensagem! {message}")
     if message["type"] != "token" and message["from_player"] != MY_ID and message["to_player"] == MY_ID:
@@ -166,16 +207,19 @@ def dealer(sock, message):
                 #print(f"Estou enviando a mensgaem: {msg}")
                 pass_message(sock, message)
         elif message["type"] == "inform_move":
-            if message["from-player"] != (MY_ID+3)%4:
-                MOVES[message["from-player"]] = message["data"]
+            if message["from_player"] != (MY_ID+3)%4:
+                COUNT_MOVES[message["from_player"]] += 1
+                MOVES[message["from_player"]] = message["data"]
                 print(f"Passando a mensagem: {message}")
                 pass_message(sock, message)
             else:
+                COUNT_MOVES[message["from_player"]] += 1
                 MOVES[message["from_player"]] = message["data"]
                 move = make_move()
+                COUNT_MOVES[MY_ID] += 1
                 MOVES[MY_ID] = move
-                print(f"Todo mundo ja fez a jogada: {MOVES}")
-                print("Agr precisamos estabelecer quem ganhou a rodada e avisar aos demais.... To be implementado....")
+                print(f"Todo mundo ja fez a jogada: {MOVES}; contador: {COUNT_MOVES}")
+                print("Agr precisamos entender se basta dar uma volta de jogadas ou se vai continuando a dar voltas.... To be implementado....")
                 a = input("Chegoooou até aquiii")
                 #print(f"Passando a mensagem: {message}")
                 #pass_message(sock, message)
@@ -283,7 +327,7 @@ def dealer(sock, message):
 
 # Função para processar as mensagens do jogador padrão
 def normal_player(sock, message):
-    global TOKEN, MY_LIST, MY_CARDS
+    global TOKEN, MY_LIST, MY_CARDS, TABLE_CARD
     if TOKEN == True or (message["type"] == "token" and message["to_player"] == MY_ID):
         TOKEN = True
         if len(MY_LIST) > 0:
@@ -328,15 +372,31 @@ def normal_player(sock, message):
             pass_message(sock, message)
         elif message["type"] == "make_move":
             definir a função make_move, que atualiza TABLE_CARD e  precisa verificar se o jogador que fazer a jogada e se é possivel fazê-la [-1: se nao quiser/puder fazer; move: se puder e quiser fazer] 
-            move = input("Informe sua jogada:")
-            msg = {
-                "type": "inform_move",
-                "from_player": MY_ID,
-                "to_player": DEALER_ID,
-                "data": move
-            }
-            MY_LIST.append(msg)
-            print(f"[DEBUG] Fez o append de: {msg}")
+            move = make_move()
+            # msg = {
+            #     "type": "inform_move",
+            #     "from_player": MY_ID,
+            #     "to_player": DEALER_ID,
+            #     "data": move
+            # }
+            # MY_LIST.append(msg)
+            # print(f"[DEBUG] Fez o append de: {msg}")
+            for i in range(1,4):
+                msg = {
+                    "type":"inform_move",
+                    "from_player": MY_ID,
+                    "to_player": (MY_ID+i)%4, # Isso possibilita a universalização do carteador
+                    "data": move
+                }
+                MY_LIST.append(msg)
+                print(f"[DEBUG] Fez o appende de: {msg}")
+            pass_message(sock, message)
+        elif message["type"] == "inform_move":
+            if message["data"] != -1:
+                print(f"O jogador {message["from_player"]}+1 fez a seguinte jogada: {message["data"]}.")
+                TABLE_CARD = message["data"]
+            else:
+                print(f"O jogador {message["from_player"]}+1 passou a vez.")
             pass_message(sock, message)
     else:
         pass_message(sock, message)
