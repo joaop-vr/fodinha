@@ -135,32 +135,41 @@ def make_move():
     move = {}
     is_playing = False
     response = input("Gostaria de fazer a jogada? [S/N]\nSe optar por não jogar, você passará sua vez! ")
-    
-    while len(move) == 0 and (response.lower() in ["s", "sim"]):
-        target = input("Informe a carta de sua jogada: ").upper()
+    while True:
+        if response.lower() in ["s","sim"]:
+            while len(move) == 0 and (response.lower() not in ["s", "sim"]):
+                target = input("Informe a carta de sua jogada: ").upper()
         
-        if target in MY_CARDS:
-            print(f'[DEBUG] {target} está presente nas cartas que possui.')
+                if target in MY_CARDS:
+                    print(f'[DEBUG] {target} está presente nas cartas que possui.')
             
-            target_index = ordered_cards.index(target)
-            table_card_index = ordered_cards.index(TABLE_CARD)
+                    target_index = ordered_cards.index(target)
+                    print(f"target: {target}")
+                    print(f"target_index: {target_index}")
+                    table_card_index = ordered_cards.index(TABLE_CARD)
+                    print(f"TABLE_CARD: {TABLE_CARD}")
+                    print(f"table_card_index: {table_card_index}")
             
-            if target_index > table_card_index:
-                MY_CARDS.pop(target_index)
-                TABLE_CARD = target
-                move = target
-                print(f'Você jogou {target}.')
-            else:
-                print(f'A carta selecionada é mais fraca que {TABLE_CARD}! Tente novamente.')
+                    if target_index > table_card_index:
+                        MY_CARDS.pop(target_index)
+                        TABLE_CARD = target
+                        move = target
+                        print(f'Você jogou {target}.')
+                        break
+                    else:
+                        print(f'A carta selecionada é mais fraca que {TABLE_CARD}! Tente novamente.')
+                else:
+                    print(f'{target} não está presente nas cartas que possui: {MY_CARDS}. Tente novamente.')
+        
+                #if len(move) == 0:
+                #    response = input("Gostaria de tentar novamente? [S/N] ")
+    
+        elif response.lower() in ["n", "não", "nao"]:
+            print("Você passou a sua vez.")
+            move = -1
+            break
         else:
-            print(f'{target} não está presente nas cartas que possui: {MY_CARDS}. Tente novamente.')
-        
-        #if len(move) == 0:
-        #    response = input("Gostaria de tentar novamente? [S/N] ")
-    
-    if response.lower() in ["n", "não", "nao"]:
-        print("Você passou a sua vez.")
-        move = -1
+            response = input("Ops! Sua resposta não foi interpretada como uma carta do baralho, tente novamente: ")
     
     return move
 
@@ -371,7 +380,7 @@ def normal_player(sock, message):
                 print(f"Jogador {i + 1}: {message['data'][i]}.")
             pass_message(sock, message)
         elif message["type"] == "make_move":
-            definir a função make_move, que atualiza TABLE_CARD e  precisa verificar se o jogador que fazer a jogada e se é possivel fazê-la [-1: se nao quiser/puder fazer; move: se puder e quiser fazer] 
+            # definir a função make_move, que atualiza TABLE_CARD e  precisa verificar se o jogador que fazer a jogada e se é possivel fazê-la [-1: se nao quiser/puder fazer; move: se puder e quiser fazer] 
             move = make_move()
             # msg = {
             #     "type": "inform_move",
@@ -393,10 +402,10 @@ def normal_player(sock, message):
             pass_message(sock, message)
         elif message["type"] == "inform_move":
             if message["data"] != -1:
-                print(f"O jogador {message["from_player"]}+1 fez a seguinte jogada: {message["data"]}.")
+                print(f"O jogador {message['from_player']}+1 fez a seguinte jogada: {message['data']}.")
                 TABLE_CARD = message["data"]
             else:
-                print(f"O jogador {message["from_player"]}+1 passou a vez.")
+                print(f"O jogador {message['from_player']}+1 passou a vez.")
             pass_message(sock, message)
     else:
         pass_message(sock, message)
