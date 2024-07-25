@@ -74,7 +74,7 @@ def init_game(sock):
     send_message(sock, msg, NEXT_IP, NEXT_PORT)
 
 # Função para distribuir cartas
-def distribute_cards(ROUND):
+def distribute_cards():
     suits = ['C', 'O', 'E', 'P']  # Copas, Ouros, Espadas, Paus
     values = ['4', '5', '6', '7', 'Q', 'J', 'K', 'A', '2', '3']
     cards = [value + suit for suit in suits for value in values]
@@ -87,10 +87,11 @@ def distribute_cards(ROUND):
                 players_cards[j].append(cards.pop())
 
     # Sorteando a manilha (SHACKLE)
-    random.shuffle(values)
+    shuffled_values = values[:]
+    random.shuffle(shuffled_values)
     global SHACKLE
-    SHACKLE = values.pop()
-    
+    SHACKLE = shuffled_values.pop()
+    powerful_card = 0 
     try:
         # Encontra a posição da Manilha
         index = values.index(SHACKLE)
@@ -145,13 +146,13 @@ def take_guess(count_guesses=0):
 def make_move():
     global MY_CARDS #, TABLE_CARD
     #ordered_SHUFFLED_CARDS = ['AE', '2E', '3E', '4E', '5E', '6E', '7E', 'JE', 'QE', 'KE', 
-                     'AC', '2C', '3C', '4C', '5C', '6C', '7C', 'JC', 'QC', 'KC', 
-                     'AO', '2O', '3O', '4O', '5O', '6O', '7O', 'JO', 'QO', 'KO', 
-                     'AP', '2P', '3P', '4P', '5P', '6P', '7P', 'JP', 'QP', 'KP']
+    #                 'AC', '2C', '3C', '4C', '5C', '6C', '7C', 'JC', 'QC', 'KC', 
+    #                 'AO', '2O', '3O', '4O', '5O', '6O', '7O', 'JO', 'QO', 'KO', 
+    #                 'AP', '2P', '3P', '4P', '5P', '6P', '7P', 'JP', 'QP', 'KP']
 
     move = {}
     #is_playing = False
-    response = input("Informe sua jogada").upper()
+    response = input("Informe sua jogada: ").upper()
     while response not in MY_CARDS:
         response = input("Ops! Sua resposta não foi interpretada como uma carta que você possue, tente novamente: ")
         # if response.lower() in ["s","sim"]:
@@ -200,6 +201,7 @@ def dealer(sock, message):
     global TOKEN, MY_LIST, GUESSES, GLOBAL, MOVES, COUNT_MOVES
     print(f"MINHA LISTA AGR: {MY_LIST}")
     print(f"[DEBUG] Recebi uma mensagem! {message}")
+    a = input("Checkpoint")
     if message["type"] != "token" and message["from_player"] != MY_ID and message["to_player"] == MY_ID:
         if message["type"] == "receive_guesses":
             # Armazena o palpite
@@ -438,7 +440,9 @@ def dealer(sock, message):
 
 # Função para processar as mensagens do jogador padrão
 def normal_player(sock, message):
-    global TOKEN, MY_LIST, MY_CARDS, TABLE_CARD
+    global TOKEN, MY_LIST, MY_CARDS
+    #print(f"Recebi uma mensagem: {message}")
+    #a = input("Checkpoint")
     if TOKEN == True or (message["type"] == "token" and message["to_player"] == MY_ID):
         TOKEN = True
         if len(MY_LIST) > 0:
@@ -457,6 +461,7 @@ def normal_player(sock, message):
             send_message(sock, msg, NEXT_IP, NEXT_PORT)
     elif message["to_player"] == MY_ID:
         print(f"Recebi uma mensagem: {message}")
+        a = input("Checkpoint")
         if message["type"] == "init":
             global DEALER_ID, SHACKLE, CARDS, ROUND
             DEALER_ID = message["from_player"]
@@ -466,7 +471,7 @@ def normal_player(sock, message):
             CARDS = aux[2]
             ROUND = len(MY_CARDS)
             print(f"Rodada: {ROUND}")
-            print(f"Manilha: {TABLE_CARD}")
+            print(f"Manilha: {SHACKLE}")
             print(f"Configuração da partida: {CARDS}")
             print(f"Jogador {MY_ID} recebeu suas cartas: {MY_CARDS}.")
             pass_message(sock, message)
