@@ -6,7 +6,7 @@ import random
 # Configurações da rede
 #TABLE_CARD = 0
 SHACKLE = 0
-ROUND = 0
+ROUND = 1
 TOKEN = False
 IS_DEALER = False
 DEALER_ID = 0
