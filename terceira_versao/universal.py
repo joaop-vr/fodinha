@@ -18,7 +18,7 @@ MY_CARDS = []
 GUESSES = [None, None, None, None]
 MOVES = [None, None, None, None]
 #COUNT_MOVES = [0, 0, 0, 0]
-PLAYERS_IPS = ["10.254.223.39", "10.254.223.40", "10.254.223.41", "10.254.223.42"]
+PLAYERS_IPS = ["10.254.223.39", "10.254.223.40", "10.254.223.41", "10.254.223.38"]
 PLAYERS_PORTS = [5039, 5040, 5041, 5042]
 MY_ID = 0
 MY_IP = 0
@@ -199,9 +199,9 @@ def count_points():
 # Função para processar as mensagens do dealer
 def dealer(sock, message):
     global TOKEN, MY_LIST, GUESSES, GLOBAL, MOVES, COUNT_MOVES
-    print(f"MINHA LISTA AGR: {MY_LIST}")
+    #print(f"MINHA LISTA AGR: {MY_LIST}")
     print(f"[DEBUG] Recebi uma mensagem! {message}")
-    a = input("Checkpoint")
+    a = input(f"\nCheckpoint")
     if message["type"] != "token" and message["from_player"] != MY_ID and message["to_player"] == MY_ID:
         if message["type"] == "receive_guesses":
             # Armazena o palpite
@@ -281,6 +281,8 @@ def dealer(sock, message):
                 }
                 MY_LIST.append(msg)
                 pass_message(sock, message)
+            else:
+                a = input("Achei o gatinho!")
         else:
             print(f"Passando a mensagem: {message}")
             pass_message(sock, message)
@@ -461,7 +463,7 @@ def normal_player(sock, message):
             send_message(sock, msg, NEXT_IP, NEXT_PORT)
     elif message["to_player"] == MY_ID:
         print(f"Recebi uma mensagem: {message}")
-        a = input("Checkpoint")
+        a = input(f"\nCheckpoint")
         if message["type"] == "init":
             global DEALER_ID, SHACKLE, CARDS, ROUND
             DEALER_ID = message["from_player"]
