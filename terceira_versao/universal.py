@@ -196,10 +196,10 @@ def make_move():
 def count_points():
     a = input("To na função count_poinst(), precisa implementar a dinamica de jogar carta igual manilha pra ent analisar os naipes!.... (aperta ctrl+C ai vai)")
     index_players = []
-    index_players.append(CARDS.index(MOVES[0]))
-    index_players.append(CARDS.index(MOVES[1]))
-    index_players.append(CARDS.index(MOVES[2]))
-    index_players.append(CARDS.index(MOVES[3]))
+    index_players.append(CARDS.index(MOVES[0][0]))
+    index_players.append(CARDS.index(MOVES[1][0]))
+    index_players.append(CARDS.index(MOVES[2][0]))
+    index_players.append(CARDS.index(MOVES[3][0]))
     if MOVES[0] == MOVES[1]:
         index_player[0] = -1
         index_player[1] = -1
@@ -337,7 +337,7 @@ def dealer(sock, message):
                 MOVES[message["from_player"]] = message["data"]
                 move = make_move()
                 MOVES[MY_ID] = move
-                prin(f"[DEBUG] MOVES da rodada: {MOVES}")
+                print(f"[DEBUG] MOVES da rodada: {MOVES}")
                 print(f"A rodada acabou, hora de contabilizar os pontos!")
                 end_round_info = finish_round()
                 for i in range(1, 4):
@@ -466,10 +466,10 @@ def dealer(sock, message):
             # print(f"[DEBUG] Passando bastão: {msg}")
             # send_message(sock, msg, NEXT_IP, NEXT_PORT)
         elif message["type"] == "end_round_info":
+            global HP
             print(f"Informações da rodada {ROUND}: {message['data']}")
             print(f"HP no inicio da rodada: {HP}")
-            global HP
-            HP = HP - message["data"][MY_ID]
+            HP = HP + message["data"][MY_ID]
             print(f"HP ao final da rodada: {HP}")
             print("Estamos no elif message['type'] == 'end_round_info', tem q ver melhor como vai fazer aqui.")
             a = input()
@@ -602,10 +602,10 @@ def normal_player(sock, message):
             print(f"O jogador {message['from_player']}+1 fez a seguinte jogada: {message['data']}.")
             pass_message(sock, message)
         elif message["type"] == "end_round_info":
+            global HP
             print(f"Informações finais da rodada {ROUND}: {message['data']}")
             print(f"HP no inicio da rodada: {HP}")
-            global HP
-            HP = HP - message["data"][MY_ID]
+            HP = HP + message["data"][MY_ID]
             print(f"HP ao final da rodada: {HP}")
             a = input()
             pass_message(sock, message)
