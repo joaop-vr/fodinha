@@ -15,6 +15,7 @@ SHUFFLED_CARDS = []
 CARDS = []
 MY_LIST = []
 MY_CARDS = []
+COUNT_WINS = [0, 0, 0, 0]
 GUESSES = [None, None, None, None]
 MOVES = [None, None, None, None]
 #COUNT_MOVES = [0, 0, 0, 0]
@@ -193,8 +194,56 @@ def make_move():
     return response
 
 def count_points():
-  a = input("Precisa implementar a função count_points.... (aperta ctrl+C ai vai)")
-  return a
+    a = input("To na função count_poinst(), precisa implementar a dinamica de jogar carta igual manilha pra ent analisar os naipes!.... (aperta ctrl+C ai vai)")
+    index_players = []
+    index_players.append(CARDS.index(MOVES[0]))
+    index_players.append(CARDS.index(MOVES[1]))
+    index_players.append(CARDS.index(MOVES[2]))
+    index_players.append(CARDS.index(MOVES[3]))
+    if MOVES[0] == MOVES[1]:
+        index_player[0] = -1
+        index_player[1] = -1
+        print("Enbuxou as cartas dos jogadores 1 e 2!")
+        if MOVES[2] == MOVES[3]:
+            index_player[2] = -1
+            index_player[3] = -1
+            print("Enbuxou as cartas dos jogadores 3 e 4!")
+    elif MOVES[1] == MOVES[2]:
+        index_player[1] = -1
+        index_player[2] = -1
+        print("Enbuxou as cartas dos jogadores 2 e 3!")
+        if MOVES[0] == MOVES[3]:
+            index_player[0] = -1
+            index_player[3] = -1
+            print("Enbuxou as cartas dos jogadores 1 e 4!")
+    elif MOVES[2] == MOVES[3]:
+        index_player[2] = -1
+        index_player[3] = -1
+        print("Enbuxou as cartas dos jogadores 3 e 4!")
+
+    sum = 0
+    for i in index_players:
+        sum += i
+
+    if sum == -4:
+        print(f"Houve 2 enbuxadas consecutivas! Portanto, ninguém ganhou essa rodada.")
+    else:
+        max_value = max(index_players)
+        index_winner = index_players.index(max_value)
+        global COUNT_WINS
+        COUNT_WINS[index_winner] += 1
+        print(f"Quem ganhou a rodada {ROUND} foi o jogador {index_winner}")
+    return 
+
+def finish_round():
+    count_points()  # Supondo que esta função atualize as variáveis GUESSES e COUNT_WINS
+    # Subtrai elemento por elemento
+    final_points = [guess - win for guess, win in zip(GUESSES, COUNT_WINS)]
+    
+    # Atualiza os pontos negativos diretamente na lista
+    final_points = [-point if point > 0 else point for point in final_points]
+    
+    return final_points
 
 # Função para processar as mensagens do dealer
 def dealer(sock, message):
@@ -238,7 +287,7 @@ def dealer(sock, message):
                 #msg = MY_LIST.pop(0)
                 #print(f"Estou enviando a mensgaem: {msg}")
                 pass_message(sock, message)
-        elif message["type"] == "inform_move":
+        elif message["type"] == "informing_move":
             #if message["from_player"] != (MY_ID+3)%4:
                 #COUNT_MOVES[message["from_player"]] += 1
                 #MOVES[message["from_player"]] = message["data"]
@@ -263,10 +312,12 @@ def dealer(sock, message):
                 MOVES[message["from_player"]] = message["data"]
                 move = make_move()
                 MOVES[MY_ID] = move
+                rin(f"[DEBUG] MOVES da rodada: {MOVES}")
+                count_points()
                 # Prepara as mensagem informando o move do carteador
                 for i in range(1,4):
                     msg = {
-                        "type":"inform_move",
+                        "type":"informing_move",
                         "from_player": MY_ID,
                         "to_player": (MY_ID+i)%4, # Isso possibilita a universalização do carteador
                         "data": move
@@ -274,7 +325,7 @@ def dealer(sock, message):
                     MY_LIST.append(msg)
                 print(f"[DEBUG] Fez o appende de: {msg}")
                 msg = {
-                    "type":"inform_move",
+                    "type":"informing_move",
                     "from_player": MY_ID,
                     "to_player": MY_ID, 
                     "data": move
@@ -283,23 +334,29 @@ def dealer(sock, message):
                 pass_message(sock, message)
             elif len(MY_CARDS) == 1:  # Completou uma volta e só tem amis uma carta na mao do carteador
                 print(f"[DEBUG] Só falta uma carta na mão do carteador!")
-                end_cicle_info = count_points()
+                MOVES[message["from_player"]] = message["data"]
+                move = make_move()
+                MOVES[MY_ID] = move
+                prin(f"[DEBUG] MOVES da rodada: {MOVES}")
+                print(f"A rodada acabou, hora de contabilizar os pontos!")
+                end_round_info = finish_round()
                 for i in range(1, 4):
                     msg = {
-                        "type": "end_cicle_info",
+                        "type": "end_round_info",
                         "from_player": MY_ID,
                         "to_player": (MY_ID + i) % 4,  # Isso possibilita a universalização do carteador
-                        "data": end_cicle_info
+                        "data": end_round_info
                     }
                     MY_LIST.append(msg)
                     print(f"[DEBUG] Fez o append de: {msg}")
                 msg = {
-                    "type": "end_cicle_info",
+                    "type": "end_round_info",
                     "from_player": MY_ID,
                     "to_player": MY_ID,  # Isso possibilita a universalização do carteador
-                    "data": end_cicle_info
+                    "data": end_round_info
                 }
                 MY_LIST.append(msg)
+                pass_message(sock, message)
             else:
                 a = input("[DEBUG] Nao deveria entrar aqui! Achei o gatinho!")
         else:
@@ -380,35 +437,42 @@ def dealer(sock, message):
             MOVES[MY_ID] = move
             print(f"[DEBUG] MOVIMENTOS: {MOVES}")
             a = input("Chegou até aqui XYZ!")
-        elif message["type"] == "inform_move":
-            end_cicle_info = count_points()
-            for i in range(1, 4):
-                msg = {
-                    "type": "end_cicle_info",
-                    "from_player": MY_ID,
-                    "to_player": (MY_ID + i) % 4,  # Isso possibilita a universalização do carteador
-                    "data": end_cicle_info
-                }
-                MY_LIST.append(msg)
-                print(f"[DEBUG] Fez o append de: {msg}")
-            msg = {
-                "type": "end_cicle_info",
-                "from_player": MY_ID,
-                "to_player": MY_ID,  # Isso possibilita a universalização do carteador
-                "data": end_cicle_info
-            }
-            MY_LIST.append(msg)
-            TOKEN = False
-            msg = {
-                "type": "token",
-                "from_player": MY_ID,
-                "to_player": NEXT_ID,
-                "data": []
-            }
-            print(f"[DEBUG] Passando bastão: {msg}")
-            send_message(sock, msg, NEXT_IP, NEXT_PORT)
-        elif message["type"] == "end_cicle_info":
-            print(f"Informações desse ultimo ciclo de jogatina: {message['data']}")
+        elif message["type"] == "informing_move":
+            a = input("Acho que nao está mais usando esse aqui, se vc estiver sendo esse print PFV informe ao JP (nao deveria estar mais vindo pra esse estado nao viu... aiai")
+            # end_cicle_info = ()
+            # for i in range(1, 4):
+            #     msg = {
+            #         "type": "end_cicle_info",
+            #         "from_player": MY_ID,
+            #         "to_player": (MY_ID + i) % 4,  # Isso possibilita a universalização do carteador
+            #         "data": end_cicle_info
+            #     }
+            #     MY_LIST.append(msg)
+            #     print(f"[DEBUG] Fez o append de: {msg}")
+            # msg = {
+            #     "type": "end_cicle_info",
+            #     "from_player": MY_ID,
+            #     "to_player": MY_ID,  # Isso possibilita a universalização do carteador
+            #     "data": end_cicle_info
+            # }
+            # MY_LIST.append(msg)
+            # TOKEN = False
+            # msg = {
+            #     "type": "token",
+            #     "from_player": MY_ID,
+            #     "to_player": NEXT_ID,
+            #     "data": []
+            # }
+            # print(f"[DEBUG] Passando bastão: {msg}")
+            # send_message(sock, msg, NEXT_IP, NEXT_PORT)
+        elif message["type"] == "end_round_info":
+            print(f"Informações da rodada {ROUND}: {message['data']}")
+            print(f"HP no inicio da rodada: {HP}")
+            global HP
+            HP = HP - message["data"][MY_ID]
+            print(f"HP ao final da rodada: {HP}")
+            print("Estamos no elif message['type'] == 'end_round_info', tem q ver melhor como vai fazer aqui.")
+            a = input()
             if len(MY_LIST) != 0:
                 for i in range(1, 4):
                     msg = {
@@ -435,6 +499,7 @@ def dealer(sock, message):
                 print("  II) fazer os appends nas mensagens pedindo que os demais jogadores façam reset nas variaveis globais EXCETO HP.")
                 print(" III) IS_DEALER := False.")
                 print("  IV) passar o cargo de carteador a diante.")
+                a = input()
         else:
             print(f"Passando a mensagem: {message}")
             pass_message(sock, message)
@@ -516,7 +581,7 @@ def normal_player(sock, message):
             # definir a função make_move, que atualiza TABLE_CARD e  precisa verificar se o jogador que fazer a jogada e se é possivel fazê-la [-1: se nao quiser/puder fazer; move: se puder e quiser fazer] 
             move = make_move()
             # msg = {
-            #     "type": "inform_move",
+            #     "type": "informing_move",
             #     "from_player": MY_ID,
             #     "to_player": DEALER_ID,
             #     "data": move
@@ -525,7 +590,7 @@ def normal_player(sock, message):
             # print(f"[DEBUG] Fez o append de: {msg}")
             for i in range(1,4):
                 msg = {
-                    "type":"inform_move",
+                    "type":"informing_move",
                     "from_player": MY_ID,
                     "to_player": (MY_ID+i)%4, # Isso possibilita a universalização do carteador
                     "data": move
@@ -533,11 +598,16 @@ def normal_player(sock, message):
                 MY_LIST.append(msg)
                 print(f"[DEBUG] Fez o appende de: {msg}")
             pass_message(sock, message)
-        elif message["type"] == "inform_move":
+        elif message["type"] == "informing_move":
             print(f"O jogador {message['from_player']}+1 fez a seguinte jogada: {message['data']}.")
             pass_message(sock, message)
-        elif message["type"] == "end_cicle_info":
-            print(f"Informações desse ultimo ciclo de jogatina: {message['data']}")
+        elif message["type"] == "end_round_info":
+            print(f"Informações finais da rodada {ROUND}: {message['data']}")
+            print(f"HP no inicio da rodada: {HP}")
+            global HP
+            HP = HP - message["data"][MY_ID]
+            print(f"HP ao final da rodada: {HP}")
+            a = input()
             pass_message(sock, message)
     else:
         pass_message(sock, message)
