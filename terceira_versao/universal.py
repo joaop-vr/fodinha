@@ -281,8 +281,27 @@ def dealer(sock, message):
                 }
                 MY_LIST.append(msg)
                 pass_message(sock, message)
+            elif len(MY_CARDS) == 1:  # Completou uma volta e só tem amis uma carta na mao do carteador
+                print(f"[DEBUG] Só falta uma carta na mão do carteador!")
+                end_cicle_info = count_points()
+                for i in range(1, 4):
+                    msg = {
+                        "type": "end_cicle_info",
+                        "from_player": MY_ID,
+                        "to_player": (MY_ID + i) % 4,  # Isso possibilita a universalização do carteador
+                        "data": end_cicle_info
+                    }
+                    MY_LIST.append(msg)
+                    print(f"[DEBUG] Fez o append de: {msg}")
+                msg = {
+                    "type": "end_cicle_info",
+                    "from_player": MY_ID,
+                    "to_player": MY_ID,  # Isso possibilita a universalização do carteador
+                    "data": end_cicle_info
+                }
+                MY_LIST.append(msg)
             else:
-                a = input("Achei o gatinho!")
+                a = input("[DEBUG] Nao deveria entrar aqui! Achei o gatinho!")
         else:
             print(f"Passando a mensagem: {message}")
             pass_message(sock, message)
