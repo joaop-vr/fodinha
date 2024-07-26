@@ -153,6 +153,7 @@ def make_move():
 
     move = {}
     #is_playing = False
+    print(f"Suas cartas: {MY_CARDS}")
     response = input("Informe sua jogada: ").upper()
     while response not in MY_CARDS:
         response = input("Ops! Sua resposta não foi interpretada como uma carta que você possue, tente novamente: ")
