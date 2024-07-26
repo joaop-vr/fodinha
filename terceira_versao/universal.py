@@ -6,7 +6,7 @@ import random
 # Configurações da rede
 #TABLE_CARD = 0
 SHACKLE = 0
-ROUND = 1
+ROUND = 0
 TOKEN = False
 IS_DEALER = False
 DEALER_ID = 0
@@ -696,11 +696,12 @@ def normal_player(sock, message):
             print(f"HP ao final da rodada: {HP}")
             a = input()
             pass_message(sock, message)
-        elif menssage["type"] == "reset_vars":
+        elif message["type"] == "reset_vars":
             reset_vars()
             pass_message(sock, message)
         elif message["type"] == "token_dealer":
-            global IS_DEALER = True
+            global IS_DEALER 
+            IS_DEALER = True
             init_game(sock)
             receive_message(sock)
     else:
