@@ -30,7 +30,7 @@ NEXT_PORT = 0
 
 # Função de inicialização do jogo
 def init_game(sock):
-    global TOKEN, SHUFFLED_CARDS, MY_LIST, IS_DEALER, ROUND, TABLE_CARD, MY_CARDS
+    global TOKEN, MY_LIST, IS_DEALER, ROUND, TABLE_CARD, MY_CARDS
 
     # O carteador é o primeiro a receber um token
     TOKEN = True
@@ -38,7 +38,7 @@ def init_game(sock):
     # Contador de rodadas
     ROUND = ROUND + 1
 
-    # Distribui as cartas para os jogadores e armazena em 'SHUFFLED_CARDS'
+    # Distribui as cartas para os jogadores e armazena em 'player_cards'
     player_cards = distribute_cards()
 
     # Configurando o jogador que começou o jogo como carteador (dealer)
@@ -76,22 +76,26 @@ def init_game(sock):
 
 # Função para distribuir cartas
 def distribute_cards():
-    suits = ['C', 'O', 'E', 'P']  # Copas, Ouros, Espadas, Paus
-    values = ['4', '5', '6', '7', 'Q', 'J', 'K', 'A', '2', '3']
-    cards = [value + suit for suit in suits for value in values]
-    random.shuffle(cards)
-    players_cards = [[] for _ in range(4)]
-    
-    for i in range(ROUND):  # ROUND == número de cartas sorteadas
-        for j in range(4):
-            if cards:
-                players_cards[j].append(cards.pop())
+    global ROUND, SHUFFLED_CARDS
+    if ROUND == 1:
+        suits = ['C', 'O', 'E', 'P']  # Copas, Ouros, Espadas, Paus
+        values = ['4', '5', '6', '7', 'Q', 'J', 'K', 'A', '2', '3']
+        cards = [value + suit for suit in suits for value in values]
+        random.shuffle(cards)
+        players_cards = [[] for _ in range(4)]
+        
+        for i in range(ROUND):  # ROUND == número de cartas sorteadas
+            for j in range(4):
+                if cards:
+                    players_cards[j].append(cards.pop())
+
+        # Embaralhando o baralho
+        SHUFFLED_CARDS = values[:]
+        random.shuffle(SHUFFLED_CARDS)
 
     # Sorteando a manilha (SHACKLE)
-    shuffled_values = values[:]
-    random.shuffle(shuffled_values)
     global SHACKLE
-    SHACKLE = shuffled_values.pop()
+    SHACKLE = SHUFFLED_CARDS.pop()
     powerful_card = 0 
     try:
         # Encontra a posição da Manilha
@@ -236,6 +240,16 @@ def count_points():
         print(f"Quem ganhou a rodada {ROUND} foi o jogador {index_winner}")
     return 
 
+def reset_vars():
+    global SHACKLE, DEALER_ID, CARDS, COUNT_WINS, GUESSES, MOVES
+    SHACKLE = 0
+    DEALER_ID = 0
+    CARDS = []
+    COUNT_WINS = [0, 0, 0, 0]
+    GUESSES = [None, None, None, None]
+    MOVES = [None, None, None, None]
+    return 
+    
 def finish_round():
     #count_points()  # Supondo que esta função atualize as variáveis GUESSES e COUNT_WINS
 
@@ -534,35 +548,36 @@ def dealer(sock, message):
             print(f"HP no inicio da rodada: {HP}")
             HP = HP + message["data"][MY_ID]
             print(f"HP ao final da rodada: {HP}")
-            print("Estamos no elif message['type'] == 'end_round_info', tem q ver melhor como vai fazer aqui.")
+            print("Estamos no elif message['type'] == 'end_round_info', vamo ve se funcionou.")
             a = input()
-            if len(MY_LIST) != 0:
-                for i in range(1, 4):
-                    msg = {
-                        "type": "make_move",
-                        "from_player": MY_ID,
-                        "to_player": (MY_ID + i) % 4,  # Isso possibilita a universalização do carteador
-                        "data": []
-                    }
-                    MY_LIST.append(msg)
-                    print(f"[DEBUG] Fez o append de: {msg}")
-                TOKEN = False
+            reset_vars()
+            for i in range(1, 4):
                 msg = {
-                    "type": "token",
+                    "type": "reset_vars",
                     "from_player": MY_ID,
-                    "to_player": NEXT_ID,
+                    "to_player": (MY_ID + i) % 4,  # Isso possibilita a universalização do carteador
                     "data": []
                 }
-                print(f"[DEBUG] Passando bastão: {msg}")
-                send_message(sock, msg, NEXT_IP, NEXT_PORT)
-            else:
-                print("Se chegou aqui significa que as cartas de todos já acabaram.")
-                print("QQ coisa olha a foto que vc tirou do papel com as anotações, mas Precisa:")
-                print("   I) implementar a função reset_vars(), que deve resetar as variaveis globais EXCETO HP para podermos começar uma nova rodada.")
-                print("  II) fazer os appends nas mensagens pedindo que os demais jogadores façam reset nas variaveis globais EXCETO HP.")
-                print(" III) IS_DEALER := False.")
-                print("  IV) passar o cargo de carteador a diante.")
-                a = input()
+                MY_LIST.append(msg)
+                print(f"[DEBUG] Fez o append de: {msg}")
+            global IS_DEALER
+            IS_DEALER = False
+            msg = {
+                "type": "token_dealer",
+                "from_player": MY_ID,
+                "to_player": NEXT_ID,  # Isso possibilita a universalização do carteador
+                "data": []
+            }
+            MY_LIST.append(msg)
+            TOKEN = False
+            msg = {
+                "type": "token",
+                "from_player": MY_ID,
+                "to_player": NEXT_ID,
+                "data": []
+            }
+            print(f"[DEBUG] Passando bastão: {msg}")
+            send_message(sock, msg, NEXT_IP, NEXT_PORT)
         else:
             print(f"Passando a mensagem: {message}")
             pass_message(sock, message)
@@ -681,6 +696,13 @@ def normal_player(sock, message):
             print(f"HP ao final da rodada: {HP}")
             a = input()
             pass_message(sock, message)
+        elif menssage["type"] == "reset_vars":
+            reset_vars()
+            pass_message(sock, message)
+        elif message["type"] == "token_dealer":
+            global IS_DEALER = True
+            init_game(sock)
+            receive_message(sock)
     else:
         pass_message(sock, message)
 
