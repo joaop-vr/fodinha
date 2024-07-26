@@ -77,21 +77,21 @@ def init_game(sock):
 # Função para distribuir cartas
 def distribute_cards():
     global ROUND, SHUFFLED_CARDS
-    if ROUND == 1:
-        suits = ['C', 'O', 'E', 'P']  # Copas, Ouros, Espadas, Paus
-        values = ['4', '5', '6', '7', 'Q', 'J', 'K', 'A', '2', '3']
-        cards = [value + suit for suit in suits for value in values]
-        random.shuffle(cards)
-        players_cards = [[] for _ in range(4)]
-        
-        for i in range(ROUND):  # ROUND == número de cartas sorteadas
-            for j in range(4):
-                if cards:
-                    players_cards[j].append(cards.pop())
+    
+    suits = ['C', 'O', 'E', 'P']  # Copas, Ouros, Espadas, Paus
+    values = ['4', '5', '6', '7', 'Q', 'J', 'K', 'A', '2', '3']
+    cards = [value + suit for suit in suits for value in values]
+    random.shuffle(cards)
+    players_cards = [[] for _ in range(4)]
+    
+    for i in range(ROUND):  # ROUND == número de cartas sorteadas
+        for j in range(4):
+            if cards:
+                players_cards[j].append(cards.pop())
 
-        # Embaralhando o baralho
-        SHUFFLED_CARDS = values[:]
-        random.shuffle(SHUFFLED_CARDS)
+    # Embaralhando o baralho
+    SHUFFLED_CARDS = values[:]
+    random.shuffle(SHUFFLED_CARDS)
 
     # Sorteando a manilha (SHACKLE)
     global SHACKLE
