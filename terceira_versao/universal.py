@@ -250,7 +250,7 @@ def dealer(sock, message):
     global TOKEN, MY_LIST, GUESSES, GLOBAL, MOVES, COUNT_MOVES
     #print(f"MINHA LISTA AGR: {MY_LIST}")
     print(f"[DEBUG] Recebi uma mensagem! {message}")
-    a = input(f"\nCheckpoint")
+    #a = input(f"\nCheckpoint")
     if message["type"] != "token" and message["from_player"] != MY_ID and message["to_player"] == MY_ID:
         if message["type"] == "receive_guesses":
             # Armazena o palpite
@@ -547,7 +547,7 @@ def normal_player(sock, message):
             send_message(sock, msg, NEXT_IP, NEXT_PORT)
     elif message["to_player"] == MY_ID:
         print(f"Recebi uma mensagem: {message}")
-        a = input(f"\nCheckpoint")
+        #a = input(f"\nCheckpoint")
         if message["type"] == "init":
             global DEALER_ID, SHACKLE, CARDS, ROUND
             DEALER_ID = message["from_player"]
