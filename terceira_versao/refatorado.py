@@ -130,7 +130,7 @@ def distribute_cards():
         output[i].append(CARDS)
 
     # output[i] = [[cartas sorteadas do player],[Manilha],[Carta mais forte],[Configuração do poder das cartas nessa partida]]
-    print(f"[DEBUG] saida do distribute-cards(): {output}'")
+    #print(f"[DEBUG] saida do distribute-cards(): {output}'")
     return output
     
 def print_guesses(guesses):
@@ -140,7 +140,7 @@ def print_guesses(guesses):
     return 
 
 def print_previous_moves(moves):
-    print(f"[DEBUG] previous moves: {moves}")
+    #print(f"[DEBUG] previous moves: {moves}")
     first_move = True
     for move in moves:
         if move != 0:
@@ -160,7 +160,7 @@ def print_moves(moves):
 
 def print_round_info(message):
     # Imprime o ganahdor da sub-rodada
-    print(f"[DEBUG] Informações finais da rodada {ROUND}: {message}")
+    #print(f"[DEBUG] Informações finais da rodada {ROUND}: {message}")
     print(f"### Informações da rodada ###")
     winner_index = message[0]
     if winner_index != -1:
@@ -175,9 +175,9 @@ def print_round_info(message):
 # Atualiza as suas vidas
 def update_HP(message):
     global PLAYERS_HPS, MY_ID
-    print(f"[DEBUG] PLAYERS_HPS[{MY_ID}] no inicio da rodada: {PLAYERS_HPS[MY_ID]}")
+    #print(f"[DEBUG] PLAYERS_HPS[{MY_ID}] no inicio da rodada: {PLAYERS_HPS[MY_ID]}")
     PLAYERS_HPS[MY_ID] = message["data"][2][MY_ID]
-    print(f"[DEBUG] PLAYERS_HPS[{MY_ID}] ao final da rodada: {PLAYERS_HPS[MY_ID]}")
+    #print(f"[DEBUG] PLAYERS_HPS[{MY_ID}] ao final da rodada: {PLAYERS_HPS[MY_ID]}")
 
 def check_players_alive():
     global PLAYERS_HPS
@@ -189,7 +189,7 @@ def check_players_alive():
 
 # Função para o usuário informar o palpite
 def take_guess(count_guesses=0):
-    print(f"[DEBUG] MY_CARDS: {MY_CARDS}")
+    #print(f"[DEBUG] MY_CARDS: {MY_CARDS}")
     # Solicita o palpite do usuário
     while True:
         try:
@@ -226,7 +226,7 @@ def make_move():
     return response
 
 def count_points():
-    print(f"[DEBUG] dentro da função count_points: MOVES: {MOVES}")
+    #print(f"[DEBUG] dentro da função count_points: MOVES: {MOVES}")
     a = input("To na função count_poinst(), precisa implementar a dinamica de jogar carta igual manilha pra ent analisar os naipes!.... (aperta ctrl+C ai vai)")
     suits = ['O', 'E', 'C', 'P']
     index_players = []
@@ -260,14 +260,14 @@ def count_points():
         sum += i
 
     if sum == -4:
-        print(f"[DEBUG] Houve 2 enbuxadas consecutivas! Portanto, ninguém ganhou essa rodada.")
+        #print(f"[DEBUG] Houve 2 enbuxadas consecutivas! Portanto, ninguém ganhou essa rodada.")
         return -1
     else:
         max_value = max(index_players)
         index_winner = index_players.index(max_value)
         global COUNT_WINS
         COUNT_WINS[index_winner] += 1
-        print(f"[DEBUG] Quem ganhou a rodada {ROUND} foi o jogador {index_winner}")
+        #print(f"[DEBUG] Quem ganhou a rodada {ROUND} foi o jogador {index_winner}")
         return index_winner
 
 def reset_vars():
@@ -300,10 +300,10 @@ def finish_round():
         if old_players_hp[i] > 0 and PLAYERS_HPS[i] <= 0 :
             new_dead_players.append(i)
 
-    print("[DEBUG] Estou dentro da função finish_round()")
-    print(f"[DEBUG] GUESSES: {GUESSES}")
-    print(f"[DEBUG] COUNT_WINS: {COUNT_WINS}")
-    print(f"[DEBUG] final_points: {final_points}")
+    #print(f"[DEBUG] Estou dentro da função finish_round()")
+    #print(f"[DEBUG] GUESSES: {GUESSES}")
+    #print(f"[DEBUG] COUNT_WINS: {COUNT_WINS}")
+    #print(f"[DEBUG] final_points: {final_points}")
     
     return [index_winner, new_dead_players, PLAYERS_HPS]
 
@@ -345,7 +345,7 @@ def dealer(sock, message):
                     "acks": [0, 0, 0, 0]
                  }
                  MY_LIST.append(msg)
-                 print(f"[DEBUG] Fez o appende de: {msg}")
+                 #print(f"[DEBUG] Fez o appende de: {msg}")
              elif message["type"] == "informing_guesses":
                  print_guesses(message["data"])
                  msg = {
@@ -357,7 +357,7 @@ def dealer(sock, message):
                     "acks": [0, 0, 0, 0]
                  }
                  MY_LIST.append(msg)
-                 print(f"[DEBUG] Fez o appende de: {msg}")
+                 #print(f"[DEBUG] Fez o appende de: {msg}")
              elif message["type"] == "make_move":
                  global MOVES
                  MOVES = message["data"]
@@ -376,7 +376,7 @@ def dealer(sock, message):
                     "acks": [0, 0, 0, 0]
                  }
                  MY_LIST.append(msg)
-                 print(f"[DEBUG] Fez o appende de: {msg}")
+                 #print(f"[DEBUG] Fez o appende de: {msg}")
              elif message["type"] == "informing_moves":
                  print_moves(message["data"])
                  round_info = finish_round()
@@ -389,7 +389,7 @@ def dealer(sock, message):
                     "acks": [0, 0, 0, 0]
                  }
                  MY_LIST.append(msg)
-                 print(f"[DEBUG] Fez o appende de: {msg}")
+                 #print(f"[DEBUG] Fez o appende de: {msg}")
              elif message["type"] == "round_info":
                  print_round_info(message["data"])
                  update_HP(message)
@@ -447,10 +447,10 @@ def dealer(sock, message):
 
      if len(MY_LIST) > 0:
          msg = MY_LIST.pop(0)
-         print(f"[DEBUG] Estou enviando a mensagem: {msg}")
+         #print(f"[DEBUG] Estou enviando a mensagem: {msg}")
          send_message(sock, msg)
      else:
-         print("[DEBUG] O carteador ficou sem mensagens para enviar.")
+         #print(f"[DEBUG] O carteador ficou sem mensagens para enviar.")
          normal_player(sock, message)
          #receive_message(sock)
 
@@ -472,11 +472,11 @@ def normal_player(sock, message):
                 global DEALER_ID, SHACKLE, POWERFUL_CARD, MY_CARDS, ROUND
                 DEALER_ID = message["from_player"]
                 # message['data'][MY_ID] := [[cartas sorteadas do player],[Manilha],[Carta mais forte],[Configuração do poder das cartas nessa partida]]
-                #print(f"[DEBUG] message[data]: {message['data']}")
-                #print(f"[DEBUG] aux := {message['data'][MY_ID]}")
+                ##print(f"[DEBUG] message[data]: {message['data']}")
+                ##print(f"[DEBUG] aux := {message['data'][MY_ID]}")
                 aux = message['data'][MY_ID]
                 MY_CARDS = aux[0]
-                #print(f"[DEBUG] MY_CARDS: {MY_CARDS}")
+                ##print(f"[DEBUG] MY_CARDS: {MY_CARDS}")
                 SHACKLE = aux[1]
                 POWERFUL_CARD = aux[2]
                 CARDS = aux[3]
@@ -544,8 +544,8 @@ def create_socket(num_player):
     NEXT_IP = PLAYERS_IPS[NEXT_ID]
     NEXT_PORT = PLAYERS_PORTS[NEXT_ID]
     sock.bind((MY_IP, MY_PORT))
-    print(f"[DEBUG] MY_ID: {MY_ID}, MY_IP: {MY_IP}, MY_PORT: {MY_PORT}")
-    print(f"[DEBUG] NEXT_ID: {NEXT_ID}, NEXT_IP: {NEXT_IP}, NEXT_PORT: {NEXT_PORT}")
+    #print(f"[DEBUG] MY_ID: {MY_ID}, MY_IP: {MY_IP}, MY_PORT: {MY_PORT}")
+    #print(f"[DEBUG] NEXT_ID: {NEXT_ID}, NEXT_IP: {NEXT_IP}, NEXT_PORT: {NEXT_PORT}")
     return sock
 
 # Função para enviar mensagem UDP
