@@ -153,7 +153,7 @@ def print_previous_moves(moves):
 
 def print_moves(moves):
     for i in range(len(moves)):
-        print(f"O jogador {i}+1 fez a seguinte jogada: {moves[i]}.")
+        print(f"O jogador {i+1} fez a seguinte jogada: {moves[i]}.")
     return
 
 def print_round_info(message):
@@ -224,8 +224,9 @@ def make_move():
     return response
 
 def count_points():
+    global SHACKLE
     #print(f"[DEBUG] dentro da função count_points: MOVES: {MOVES}")
-    a = input("To na função count_poinst(), precisa implementar a dinamica de jogar carta igual manilha pra ent analisar os naipes!.... (aperta ctrl+C ai vai)")
+    #a = input("To na função count_poinst(), precisa implementar a dinamica de jogar carta igual manilha pra ent analisar os naipes!.... (aperta ctrl+C ai vai)")
     suits = ['O', 'E', 'C', 'P']
     index_players = []
     index_players.append(CARDS.index(MOVES[0][0]))
@@ -233,25 +234,45 @@ def count_points():
     index_players.append(CARDS.index(MOVES[2][0]))
     index_players.append(CARDS.index(MOVES[3][0]))
     if MOVES[0] == MOVES[1]:
-        index_player[0] = -1
-        index_player[1] = -1
-        print("Enbuxou as cartas dos jogadores 1 e 2!")
+        if MOVES[0][0] == SHACKLE:
+            index_player[0] += suits.index(MOVES[0][1])
+            index_player[1] += suits.index(MOVES[1][1])
+        else:
+            index_player[0] = -1
+            index_player[1] = -1
+            print("Enbuxou as cartas dos jogadores 1 e 2!")
         if MOVES[2] == MOVES[3]:
+            if MOVES[2] == SHACKLE:
+                index_player[2] += suits.index(MOVES[2][1])
+                index_player[3] += suits.index(MOVES[3][1])
+            else:
+                index_player[2] = -1
+                index_player[3] = -1
+                print("Enbuxou as cartas dos jogadores 3 e 4!")
+    elif MOVES[1] == MOVES[2]:
+        if MOVES[1] == SHACKLE:
+            index_player[1] += suits.index(MOVES[1][1])
+            index_player[2] += suits.index(MOVES[2][1])
+        else:
+            index_player[1] = -1
+            index_player[2] = -1
+            print("Enbuxou as cartas dos jogadores 2 e 3!")
+        if MOVES[0] == MOVES[3]:
+            if MOVES[0] == SHACKLE:
+                index_player[0] += suits.index(MOVES[0][1])
+                index_player[3] += suits.index(MOVES[3][1])
+            else:
+                index_player[0] = -1
+                index_player[3] = -1
+                print("Enbuxou as cartas dos jogadores 1 e 4!")
+    elif MOVES[2] == MOVES[3]:
+        if MOVES[2] == SHACKLE:
+            index_player[2] += suits.index(MOVES[2][1])
+            index_player[3] += suits.index(MOVES[3][1])
+        else:
             index_player[2] = -1
             index_player[3] = -1
             print("Enbuxou as cartas dos jogadores 3 e 4!")
-    elif MOVES[1] == MOVES[2]:
-        index_player[1] = -1
-        index_player[2] = -1
-        print("Enbuxou as cartas dos jogadores 2 e 3!")
-        if MOVES[0] == MOVES[3]:
-            index_player[0] = -1
-            index_player[3] = -1
-            print("Enbuxou as cartas dos jogadores 1 e 4!")
-    elif MOVES[2] == MOVES[3]:
-        index_player[2] = -1
-        index_player[3] = -1
-        print("Enbuxou as cartas dos jogadores 3 e 4!")
 
     sum = 0
     for i in index_players:
