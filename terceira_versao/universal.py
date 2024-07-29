@@ -75,7 +75,7 @@ def init_round(sock):
     # Guardando as cartas do carteador e imprime 
     # as informações iniciais do carteador
     MY_CARDS = player_cards[MY_ID][0]
-    print(f"Rodada: {ROUND}")
+    print(f"\nRodada: {ROUND}")
     print(f"Manilha: {SHACKLE}")
     print(f"Configuração da partida: {CARDS}")
     print(f"Suas cartas: {MY_CARDS}.")
@@ -132,7 +132,7 @@ def distribute_cards():
     return output
     
 def print_guesses(guesses):
-    print(f"Palpites:")
+    print(f"\nPalpites:")
     for i in range(len(guesses)):
         print(f"Jogador {i + 1}: {guesses[i]}.")
     return 
@@ -146,12 +146,13 @@ def print_previous_moves(moves):
             break
 
     if first_move:
-        print("Você é o primeiro a jogar. Boa sorte!")
+        print("\nVocê é o primeiro a jogar. Boa sorte!")
     else:
         print(f"Cartas já jogadas: {moves}")
     return
 
 def print_moves(moves):
+    print(f"\n")
     for i in range(len(moves)):
         print(f"O jogador {i+1} fez a seguinte jogada: {moves[i]}.")
     return
@@ -159,15 +160,15 @@ def print_moves(moves):
 def print_round_info(message):
     # Imprime o ganahdor da sub-rodada
     #print(f"[DEBUG] Informações finais da rodada {ROUND}: {message}")
-    print(f"### Informações da rodada ###")
+    print(f"\n### Informações da rodada ###")
     winner_index = message[0]
     if winner_index != -1:
-        print(f"$ Ganhador: Jogador {winner_index+1}!")
+        print(f"Ganhador: Jogador {winner_index+1}!")
     else:
-        print("$ Ganhador: não houve ganhador nessa sub-rodada!")
+        print("Ganhador: não houve ganhador nessa sub-rodada!")
 
     if len(message[1]) > 0:
-        print(f"$ Jogadores eliminados: {message[1]}")
+        print(f"Jogadores eliminados: {message[1]}")
     return
 
 # Atualiza as suas vidas
@@ -216,11 +217,14 @@ def take_guess(count_guesses=0):
 
 def make_move():
     global MY_CARDS
-    print(f"Suas cartas: {MY_CARDS}")
+    print(f"\nSuas cartas: {MY_CARDS}")
     response = input("Informe sua jogada: ").upper()
-    while response not in MY_CARDS:
-        response = input("Ops! Sua resposta não foi interpretada como uma carta que você possue, tente novamente: ")
-    MY_CARDS.remove(response)
+    if len(MY_CARDS) == 1 and response == "^[[B":
+        MY_CARDS.pop(0)
+    else:
+        while response not in MY_CARDS:
+            response = input("Ops! Sua resposta não foi interpretada como uma carta que você possue, tente novamente: ")
+        MY_CARDS.remove(response)
     return response
 
 def count_points():
@@ -497,7 +501,7 @@ def normal_player(sock, message):
                 SHACKLE = aux[1]
                 CARDS = aux[2]
                 ROUND = len(MY_CARDS)
-                print(f"Rodada: {ROUND}")
+                print(f"\nRodada: {ROUND}")
                 print(f"Manilha: {SHACKLE}")
                 print(f"Configuração da partida: {CARDS}")
                 print(f"Suas cartas: {MY_CARDS}.")
@@ -526,7 +530,7 @@ def normal_player(sock, message):
                 reset_vars()
                 pass_message(sock, message)
             elif message["type"] == "end_game":
-                print(f"O último jogador que se manteve de pé foi o Jogador {message['data']+1}")
+                print(f"\nO último jogador que se manteve de pé foi o Jogador {message['data']+1}")
                 global PLAYING
                 PLAYING = False
                 pass_message(sock, message)
