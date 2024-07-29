@@ -74,7 +74,7 @@ def init_round(sock):
     # Guardando as cartas do carteador e imprime 
     # as informações iniciais do carteador
     MY_CARDS = player_cards.pop(0)[0]
-    print__infos()
+    print_init_infos()
     
     # Envia a primeira mensagem da lista
     msg = MY_LIST.pop(0)
@@ -160,7 +160,7 @@ def print_round_info(message):
         print("$ Ganhador: não houve ganhador nessa sub-rodada!")
 
     if len(message["data"][1]) > 0:
-        print(f"$ Jogadores eliminados: {message["data"][1]}")
+        print(f"$ Jogadores eliminados: {message['data'][1]}")
     return
 
 # Atualiza as suas vidas
@@ -437,13 +437,13 @@ def dealer(sock, message):
 
 # Função para processar as mensagens do jogador padrão
 def normal_player(sock, message):
-    global PLAYERS_HP, MY_ID
+    global PLAYERS_HPS, MY_ID, ROUND
     # Recebeu uma mensagem destinada a ele
     if (message["broadcast"] == True or message["to_player"] == MY_ID):
         #print(f"Recebi uma mensagem: {message}")
         #a = input(f"\nCheckpoint")
         # Verifica se o jogador está fora do jogo
-        if PLAYERS_HP[MY_ID} <= 0:
+        if PLAYERS_HPS[MY_ID] <= 0:
             print("Você morreu. Mensagem sendo passada adiante...")
             message["acks"][MY_ID] = -1
             pass_message(sock, message)
@@ -491,7 +491,7 @@ def normal_player(sock, message):
                 pass_message(sock, message)
     elif message["broadcast"] == False and message["to_player"] == MY_ID:
         if message["type"] == "dealer_token":
-            global IS_DEALER, ROUND, PLAYERS_HPS
+            global IS_DEALER
             IS_DEALER = True
             ROUND = message["data"][0]
             PLAYERS_HPS = message["data"][1]
@@ -529,7 +529,7 @@ def send_message(sock, message):
 
 # Função para passar a mensagem adiante
 def pass_message(sock, message):
-    send_message(sock, message, NEXT_IP, NEXT_PORT)
+    sock.sendto(json.dumps(message).encode(), (NEXT_IP, NEXT_PORT))
 
 # Função para receber e processar mensagens
 def receive_message(sock):
