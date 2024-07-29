@@ -73,7 +73,7 @@ def init_round(sock):
 
     # Guardando as cartas do carteador e imprime 
     # as informações iniciais do carteador
-    MY_CARDS = player_cards.pop(0)[0]
+    MY_CARDS = player_cards[MY_ID][0]
     print_init_infos()
     
     # Envia a primeira mensagem da lista
@@ -125,6 +125,7 @@ def distribute_cards():
         output[i].append(CARDS)
 
     # output[i] = [[cartas sorteadas do player],[Manilha],[Carta mais forte],[Configuração do poder das cartas nessa partida]]
+    print(f"[DEBUG] saida do distribute-cards(): {output}'")
     return output
 
 def print_init_infos():
@@ -440,7 +441,7 @@ def normal_player(sock, message):
     global PLAYERS_HPS, MY_ID, ROUND
     # Recebeu uma mensagem destinada a ele
     if (message["broadcast"] == True or message["to_player"] == MY_ID):
-        #print(f"Recebi uma mensagem: {message}")
+        print(f"Recebi uma mensagem: {message}")
         #a = input(f"\nCheckpoint")
         # Verifica se o jogador está fora do jogo
         if PLAYERS_HPS[MY_ID] <= 0:
@@ -453,8 +454,11 @@ def normal_player(sock, message):
                 global DEALER_ID, SHACKLE, POWERFUL_CARD, CARDS, ROUND
                 DEALER_ID = message["from_player"]
                 # message['data'][MY_ID] := [[cartas sorteadas do player],[Manilha],[Carta mais forte],[Configuração do poder das cartas nessa partida]]
+                print(f"[DEBUG] message[data]: {message['data']}")
+                print(f"[DEBUG] aux := {message['data'][MY_ID]}")
                 aux = message['data'][MY_ID]
                 MY_CARDS = aux[0]
+                print(f"[DEBUG] MY_CARDS: {MY_CARDS}")
                 SHACKLE = aux[1]
                 POWERFUL_CARD = aux[2]
                 CARDS = aux[3]
