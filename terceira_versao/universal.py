@@ -148,13 +148,16 @@ def print_previous_moves(moves):
     if first_move:
         print("\nVocê é o primeiro a jogar. Boa sorte!")
     else:
-        print(f"Cartas já jogadas: {moves}")
+        aux = []
+        for move in moves:
+            aux.append(move[1])
+        print(f"Cartas já jogadas: {aux}")
     return
 
 def print_moves(moves):
     print(f"\n")
-    for i in range(len(moves)):
-        print(f"O jogador {i+1} fez a seguinte jogada: {moves[i]}.")
+    for move in moves:
+        print(f"O jogador {move[0]+1} fez a seguinte jogada: {move[1]}.")
     return
 
 def print_round_info(message):
@@ -168,7 +171,7 @@ def print_round_info(message):
         print("Ganhador: não houve ganhador nessa sub-rodada!")
 
     if len(message[1]) > 0:
-        print(f"Jogadores eliminados: {message[1]}")
+        print(f"Jogadores eliminados: {message[1]+1}")
     return
 
 # Atualiza as suas vidas
@@ -176,7 +179,7 @@ def update_HP(message):
     global PLAYERS_HPS, MY_ID
     #print(f"[DEBUG] PLAYERS_HPS[{MY_ID}] no inicio da rodada: {PLAYERS_HPS[MY_ID]}")
     PLAYERS_HPS[MY_ID] = message["data"][2][MY_ID]
-    #print(f"[DEBUG] PLAYERS_HPS[{MY_ID}] ao final da rodada: {PLAYERS_HPS[MY_ID]}")
+    print(f"HP: {PLAYERS_HPS[MY_ID]}")
 
 def check_players_alive():
     global PLAYERS_HPS
@@ -216,16 +219,17 @@ def take_guess(count_guesses=0):
     return guess
 
 def make_move():
-    global MY_CARDS
+    global MY_CARDS, MY_ID
     print(f"\nSuas cartas: {MY_CARDS}")
-    response = input("Informe sua jogada: ").upper()
-    if len(MY_CARDS) == 1 and response == "^[[B":
-        MY_CARDS.pop(0)
+    response = input("Informe sua jogada: ")
+    if response == "^[[B" and len(MY_CARDS) == 1:
+        response = MY_CARDS.pop()
     else:
+        response.upper()
         while response not in MY_CARDS:
             response = input("Ops! Sua resposta não foi interpretada como uma carta que você possue, tente novamente: ")
         MY_CARDS.remove(response)
-    return response
+    return (MY_ID, response)
 
 def count_points():
     global SHACKLE
@@ -233,10 +237,10 @@ def count_points():
     #a = input("To na função count_poinst(), precisa implementar a dinamica de jogar carta igual manilha pra ent analisar os naipes!.... (aperta ctrl+C ai vai)")
     suits = ['O', 'E', 'C', 'P']
     index_players = []
-    index_players.append(CARDS.index(MOVES[0][0]))
-    index_players.append(CARDS.index(MOVES[1][0]))
-    index_players.append(CARDS.index(MOVES[2][0]))
-    index_players.append(CARDS.index(MOVES[3][0]))
+    index_players.append(CARDS.index(MOVES[0][1][0]))
+    index_players.append(CARDS.index(MOVES[1][1][0]))
+    index_players.append(CARDS.index(MOVES[2][1][0]))
+    index_players.append(CARDS.index(MOVES[3][1][0]))
     if MOVES[0] == MOVES[1]:
         if MOVES[0][0] == SHACKLE:
             index_player[0] += suits.index(MOVES[0][1])
@@ -354,7 +358,10 @@ def dealer(sock, message):
                  global GUESSES, PLAYERS_HPS
                  GUESSES = message["data"]
                  if PLAYERS_HPS[MY_ID] > 0:
-                     guess = take_guess(1)
+                     sum_guesses = 0
+                     for guess in message["data"]:
+                        sum_guesses += guess
+                     guess = take_guess(sum_guesses)
                      GUESSES[MY_ID] = guess
                  else:
                      GUESSES[MY_ID] = 0
@@ -375,7 +382,7 @@ def dealer(sock, message):
                     "broadcast": True,
                     "from_player": MY_ID,
                     "to_player": destination, 
-                    "data": [0, 0, 0, 0],
+                    "data": [],
                     "acks": [0, 0, 0, 0]
                  }
                  MY_LIST.append(msg)
@@ -386,9 +393,9 @@ def dealer(sock, message):
                  if PLAYERS_HPS[MY_ID] > 0:
                      print_previous_moves(message["data"])
                      move = make_move()
-                     MOVES[MY_ID] = move
+                     MOVES.append(move)
                  else:
-                     MOVES[MY_ID] = 0
+                     MOVES.append(0)
                  msg = {
                     "type": "informing_moves",
                     "broadcast": True,
@@ -433,7 +440,7 @@ def dealer(sock, message):
                             "broadcast": True,
                             "from_player": MY_ID,
                             "to_player": destination, 
-                            "data": [0, 0, 0, 0],
+                            "data": [],
                             "acks": [0, 0, 0, 0]
                          }
                          MY_LIST.append(msg)
@@ -507,17 +514,23 @@ def normal_player(sock, message):
                 print(f"Suas cartas: {MY_CARDS}.")
                 pass_message(sock, message)
             elif message["type"] == "take_guesses":         # Faz o palpite
-                guess = take_guess()
-                message["data"][MY_ID] = guess
+                if PLAYERS_HPS[MY_ID] > 0:
+                    guess = take_guess()
+                    message["data"][MY_ID] = guess
+                else:
+                    message["data"][MY_ID] = 0
                 pass_message(sock, message)
             elif message["type"] == "informing_guesses":    # Recebe e imprime os palpites de todos
                 message["acks"][MY_ID] = 1
                 print_guesses(message["data"])
                 pass_message(sock, message)
             elif message["type"] == "make_move":            # Faz a jogada
-                print_previous_moves(message["data"])
-                move = make_move()
-                message["data"][MY_ID] = move
+                if PLAYERS_HPS[MY_ID] > 0:
+                    print_previous_moves(message["data"])
+                    move = make_move()
+                    message["data"].append(move)
+                else:
+                    message["data"].append(0)
                 pass_message(sock, message)
             elif message["type"] == "informing_moves":      # Recebe e imprime as jogadas de todos
                 print_moves(message["data"])

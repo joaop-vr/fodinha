@@ -226,7 +226,7 @@ def make_move():
     return response
 
 def count_points():
-    #print(f"[DEBUG] dentro da função count_points: MOVES: {MOVES}")
+    print(f"[DEBUG] dentro da função count_points: MOVES: {MOVES}")
     a = input("To na função count_poinst(), precisa implementar a dinamica de jogar carta igual manilha pra ent analisar os naipes!.... (aperta ctrl+C ai vai)")
     suits = ['O', 'E', 'C', 'P']
     index_players = []
