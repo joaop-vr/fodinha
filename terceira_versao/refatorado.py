@@ -17,7 +17,7 @@ MY_LIST = []
 MY_CARDS = []
 COUNT_WINS = [0, 0, 0, 0]
 GUESSES = [None, None, None, None]
-MOVES = [None, None, None, None]
+MOVES = [0, 0, 0, 0]
 PLAYERS_HPS = [7, 7, 7, 7]
 PLAYERS_IPS = ["10.254.223.39", "10.254.223.40", "10.254.223.41", "10.254.223.38"]
 PLAYERS_PORTS = [5039, 5040, 5041, 5042]
@@ -31,6 +31,8 @@ NEXT_PORT = 0
 # Função de inicialização do jogo
 def init_round(sock):
     global TOKEN, MY_LIST, IS_DEALER, ROUND, TABLE_CARD, MY_CARDS
+
+    print("Você é o carteador da rodada!")
 
     # O carteador é o primeiro a receber um token
     TOKEN = True
@@ -66,7 +68,7 @@ def init_round(sock):
         "broadcast": True,
         "from_player": MY_ID,
         "to_player": destination, 
-        "data": [],
+        "data": [0, 0, 0, 0],
         "acks": [0, 0, 0, 0]
     }
     MY_LIST.append(msg)
@@ -138,7 +140,17 @@ def print_guesses(guesses):
     return 
 
 def print_previous_moves(moves):
-    print(f"Cartas já jogadas: {moves}")
+    print(f"[DEBUG] previous moves: {moves}")
+    first_move = True
+    for move in moves:
+        if move != 0:
+            first_move = False
+            break
+
+    if first_move:
+        print("Você é o primeiro a jogar. Boa sorte!")
+    else:
+        print(f"Cartas já jogadas: {moves}")
     return
 
 def print_moves(moves):
@@ -148,24 +160,24 @@ def print_moves(moves):
 
 def print_round_info(message):
     # Imprime o ganahdor da sub-rodada
-    print(f"[DEBUG] Informações finais da rodada {ROUND}: {message['data']}")
+    print(f"[DEBUG] Informações finais da rodada {ROUND}: {message}")
     print(f"### Informações da rodada ###")
-    winner_index = message["data"][0]
+    winner_index = message[0]
     if winner_index != -1:
         print(f"$ Ganhador: Jogador {winner_index+1}!")
     else:
         print("$ Ganhador: não houve ganhador nessa sub-rodada!")
 
-    if len(message["data"][1]) > 0:
-        print(f"$ Jogadores eliminados: {message['data'][1]}")
+    if len(message[1]) > 0:
+        print(f"$ Jogadores eliminados: {message[1]}")
     return
 
 # Atualiza as suas vidas
 def update_HP(message):
-    global PLAYERS_HP, MY_ID
-    print(f"[DEBUG] PLAYERS_HP[{MY_ID}] no inicio da rodada: {PLAYERS_HP[MY_ID]}")
-    PLAYERS_HP[MY_ID] = message["data"][2][MY_ID]
-    print(f"[DEBUG] PLAYERS_HP[{MY_ID}] ao final da rodada: {PLAYERS_HP[MY_ID]}")
+    global PLAYERS_HPS, MY_ID
+    print(f"[DEBUG] PLAYERS_HPS[{MY_ID}] no inicio da rodada: {PLAYERS_HPS[MY_ID]}")
+    PLAYERS_HPS[MY_ID] = message["data"][2][MY_ID]
+    print(f"[DEBUG] PLAYERS_HPS[{MY_ID}] ao final da rodada: {PLAYERS_HPS[MY_ID]}")
 
 def check_players_alive():
     global PLAYERS_HPS
@@ -177,6 +189,7 @@ def check_players_alive():
 
 # Função para o usuário informar o palpite
 def take_guess(count_guesses=0):
+    print(f"[DEBUG] MY_CARDS: {MY_CARDS}")
     # Solicita o palpite do usuário
     while True:
         try:
@@ -288,9 +301,9 @@ def finish_round():
             new_dead_players.append(i)
 
     print("[DEBUG] Estou dentro da função finish_round()")
-    print("[DEBUG] GUESSES: {GUESSES}")
-    print("[DEBUG] COUNT_WINS: {COUNT_WINS}")
-    print("[DEBUG] final_points: {final_points}")
+    print(f"[DEBUG] GUESSES: {GUESSES}")
+    print(f"[DEBUG] COUNT_WINS: {COUNT_WINS}")
+    print(f"[DEBUG] final_points: {final_points}")
     
     return [index_winner, new_dead_players, PLAYERS_HPS]
 
@@ -318,7 +331,7 @@ def dealer(sock, message):
              if message["type"] == "take_guesses":
                  global GUESSES, PLAYERS_HPS
                  GUESSES = message["data"]
-                 if PLAYERS_HPS[MY_HP] > 0:
+                 if PLAYERS_HPS[MY_ID] > 0:
                      guess = take_guess(1)
                      GUESSES[MY_ID] = guess
                  else:
@@ -334,20 +347,22 @@ def dealer(sock, message):
                  MY_LIST.append(msg)
                  print(f"[DEBUG] Fez o appende de: {msg}")
              elif message["type"] == "informing_guesses":
-                 print_guesses()
+                 print_guesses(message["data"])
                  msg = {
                     "type": "make_move",
                     "broadcast": True,
                     "from_player": MY_ID,
                     "to_player": destination, 
-                    "data": [],
+                    "data": [0, 0, 0, 0],
                     "acks": [0, 0, 0, 0]
                  }
                  MY_LIST.append(msg)
                  print(f"[DEBUG] Fez o appende de: {msg}")
              elif message["type"] == "make_move":
+                 global MOVES
                  MOVES = message["data"]
-                 if PLAYERS_HPS[MY_HP] > 0:
+                 if PLAYERS_HPS[MY_ID] > 0:
+                     print_previous_moves(message["data"])
                      move = make_move()
                      MOVES[MY_ID] = move
                  else:
@@ -363,7 +378,7 @@ def dealer(sock, message):
                  MY_LIST.append(msg)
                  print(f"[DEBUG] Fez o appende de: {msg}")
              elif message["type"] == "informing_moves":
-                 print_moves()
+                 print_moves(message["data"])
                  round_info = finish_round()
                  msg = {
                     "type": "round_info",
@@ -396,7 +411,7 @@ def dealer(sock, message):
                             "broadcast": True,
                             "from_player": MY_ID,
                             "to_player": destination, 
-                            "data": [],
+                            "data": [0, 0, 0, 0],
                             "acks": [0, 0, 0, 0]
                          }
                          MY_LIST.append(msg)
@@ -422,22 +437,29 @@ def dealer(sock, message):
                     "data": dealer_info,
                  }
                  MY_LIST.append(msg)
+                 print(f"Você não é mais o carteador.")
+     
              elif message["type"] == "end_game":
                 print(f"O último jogador que se manteve de pé foi o Jogador {message['data']+1}")
                 global PLAYING
                 PLAYING = False
                 return
 
-     msg = MY_LIST.pop(0)
-     print(f"[DEBUG] Estou enviando a mensagem: {msg}")
-     send_message(sock, msg)
+     if len(MY_LIST) > 0:
+         msg = MY_LIST.pop(0)
+         print(f"[DEBUG] Estou enviando a mensagem: {msg}")
+         send_message(sock, msg)
+     else:
+         print("[DEBUG] O carteador ficou sem mensagens para enviar.")
+         normal_player(sock, message)
+         #receive_message(sock)
 
 # Função para processar as mensagens do jogador padrão
 def normal_player(sock, message):
     global PLAYERS_HPS, MY_ID, ROUND
     # Recebeu uma mensagem destinada a ele
-    if (message["broadcast"] == True or message["to_player"] == MY_ID):
-        print(f"Recebi uma mensagem: {message}")
+    if message["broadcast"] == True and MY_ID in message["to_player"]:
+        #print(f"Recebi uma mensagem: {message}")
         #a = input(f"\nCheckpoint")
         # Verifica se o jogador está fora do jogo
         if PLAYERS_HPS[MY_ID] <= 0:
@@ -447,14 +469,14 @@ def normal_player(sock, message):
         else:
             message["acks"][MY_ID] = 1
             if message["type"] == "init":                   # Setando as variaveis do player no inicio da rodada
-                global DEALER_ID, SHACKLE, POWERFUL_CARD, CARDS, ROUND
+                global DEALER_ID, SHACKLE, POWERFUL_CARD, MY_CARDS, ROUND
                 DEALER_ID = message["from_player"]
                 # message['data'][MY_ID] := [[cartas sorteadas do player],[Manilha],[Carta mais forte],[Configuração do poder das cartas nessa partida]]
-                print(f"[DEBUG] message[data]: {message['data']}")
-                print(f"[DEBUG] aux := {message['data'][MY_ID]}")
+                #print(f"[DEBUG] message[data]: {message['data']}")
+                #print(f"[DEBUG] aux := {message['data'][MY_ID]}")
                 aux = message['data'][MY_ID]
                 MY_CARDS = aux[0]
-                print(f"[DEBUG] MY_CARDS: {MY_CARDS}")
+                #print(f"[DEBUG] MY_CARDS: {MY_CARDS}")
                 SHACKLE = aux[1]
                 POWERFUL_CARD = aux[2]
                 CARDS = aux[3]
