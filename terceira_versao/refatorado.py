@@ -74,7 +74,10 @@ def init_round(sock):
     # Guardando as cartas do carteador e imprime 
     # as informações iniciais do carteador
     MY_CARDS = player_cards[MY_ID][0]
-    print_init_infos()
+    print(f"Rodada: {ROUND}")
+    print(f"Carta de giro: {POWERFUL_CARD}")
+    print(f"Configuração da partida: {CARDS}")
+    print(f"Suas cartas: {MY_CARDS}.")
     
     # Envia a primeira mensagem da lista
     msg = MY_LIST.pop(0)
@@ -127,13 +130,6 @@ def distribute_cards():
     # output[i] = [[cartas sorteadas do player],[Manilha],[Carta mais forte],[Configuração do poder das cartas nessa partida]]
     print(f"[DEBUG] saida do distribute-cards(): {output}'")
     return output
-
-def print_init_infos():
-    print(f"Rodada: {ROUND}")
-    print(f"Carta de giro: {POWERFUL_CARD}")
-    print(f"Configuração da partida: {CARDS}")
-    print(f"Suas cartas: {MY_CARDS}.")
-    return 
     
 def print_guesses(guesses):
     print(f"Palpites:")
@@ -463,7 +459,10 @@ def normal_player(sock, message):
                 POWERFUL_CARD = aux[2]
                 CARDS = aux[3]
                 ROUND = len(MY_CARDS)
-                print_init_infos()
+                print(f"Rodada: {ROUND}")
+                print(f"Carta de giro: {POWERFUL_CARD}")
+                print(f"Configuração da partida: {CARDS}")
+                print(f"Suas cartas: {MY_CARDS}.")
                 pass_message(sock, message)
             elif message["type"] == "take_guesses":         # Faz o palpite
                 guess = take_guess()
