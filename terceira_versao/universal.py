@@ -130,11 +130,20 @@ def distribute_cards():
     # output[i] = [[cartas sorteadas do player],[Manilha],[Configuração do poder das cartas nessa partida]]
     #print(f"[DEBUG] saida do distribute-cards(): {output}'")
     return output
-    
+
+def print_previous_guesses(guesses):
+    print(f"Palpites anteriores:")
+    for i in range(len(guesses)):
+        print(f"Palpite do Jogador {i+1}: {guesses[i]}") 
+    return
+
 def print_guesses(guesses):
     print(f"\nPalpites:")
     for i in range(len(guesses)):
-        print(f"Jogador {i + 1}: {guesses[i]}.")
+        if guesses[i] != -1:
+            print(f"Jogador {i + 1}: {guesses[i]}.")
+        else:
+            print(f"Jogador {i + 1}: desqualificado.")
     return 
 
 def print_previous_moves(moves):
@@ -150,14 +159,18 @@ def print_previous_moves(moves):
     else:
         aux = []
         for move in moves:
-            aux.append(move[1])
+            if move != -1:
+                aux.append(move)
         print(f"Cartas já jogadas: {aux}")
     return
 
 def print_moves(moves):
     print(f"\n")
     for move in moves:
-        print(f"O jogador {move[0]+1} fez a seguinte jogada: {move[1]}.")
+        if move != -1:
+            print(f"O jogador {move[0]+1} jogou: {move[1]}.")
+        else:
+            print(f"O jogador {move[0]+1} foi desqualificado.")
     return
 
 def print_round_info(message):
@@ -171,7 +184,7 @@ def print_round_info(message):
         print("Ganhador: não houve ganhador nessa sub-rodada!")
 
     if len(message[1]) > 0:
-        print(f"Jogadores eliminados: {message[1]+1}")
+        print(f"Jogadores eliminados: {message[1]}")
     return
 
 # Atualiza as suas vidas
@@ -232,13 +245,16 @@ def make_move():
     return (MY_ID, response)
 
 def count_points():
-    global SHACKLE
-    #print(f"[DEBUG] dentro da função count_points: MOVES: {MOVES}")
+    global SHACKLE, MOVES
+    print(f"[DEBUG] dentro da função count_points: MOVES: {MOVES}")
     
     suits = ['O', 'E', 'C', 'P']
     index_players = []
     same_value = []
     same_value_shackle = []
+
+    MOVES = sorted(MOVES, key=lambda x: x[0])
+    print(f"MOVES dps da ordenação: {MOVES}")
     
     # Obter os índices das cartas nos movimentos
     for move in MOVES:
@@ -285,7 +301,7 @@ def count_points():
         index_winner = final_points.index(max_value)
         global COUNT_WINS
         COUNT_WINS[index_winner] += 1
-        print(f"[DEBUG] Quem ganhou a rodada {ROUND} foi o jogador {index_winner}")
+        print(f"[DEBUG] Quem ganhou a rodada {ROUND} foi o jogador {index_winner}+1")
         return index_winner
 
 def reset_vars():
@@ -355,7 +371,7 @@ def dealer(sock, message):
                      guess = take_guess(sum_guesses)
                      GUESSES[MY_ID] = guess
                  else:
-                     GUESSES[MY_ID] = 0
+                     GUESSES[MY_ID] = -1
                  msg = {
                     "type": "informing_guesses",
                     "broadcast": True,
@@ -386,7 +402,7 @@ def dealer(sock, message):
                      move = make_move()
                      MOVES.append(move)
                  else:
-                     MOVES.append(0)
+                     MOVES.append(-1)
                  msg = {
                     "type": "informing_moves",
                     "broadcast": True,
@@ -412,7 +428,9 @@ def dealer(sock, message):
                  #print(f"[DEBUG] Fez o appende de: {msg}")
              elif message["type"] == "round_info":
                  print_round_info(message["data"])
-                 update_HP(message)
+                 if len(MY_CARDS) == 0:
+                    print(f"[DEBUG] Vai atualizar o HP")
+                    update_HP(message)
                  players_alive = check_players_alive()
                  if len(players_alive) <= 1:
                      msg = {
@@ -460,7 +478,7 @@ def dealer(sock, message):
                  print(f"Você não é mais o carteador.")
      
              elif message["type"] == "end_game":
-                print(f"O último jogador que se manteve de pé foi o Jogador {message['data']+1}")
+                print(f"O último jogador que se manteve de pé foi o Jogador {message['data']}")
                 global PLAYING
                 PLAYING = False
                 return
@@ -482,7 +500,7 @@ def normal_player(sock, message):
         #print(f"Recebi uma mensagem: {message}")
         #a = input(f"\nCheckpoint")
         # Verifica se o jogador está fora do jogo
-        if PLAYERS_HPS[MY_ID] <= 0:
+        if PLAYERS_HPS[MY_ID] <= 0 and message["data"] != "end_game":
             print("Você morreu. Mensagem sendo passada adiante...")
             message["acks"][MY_ID] = -1
             pass_message(sock, message)
@@ -509,7 +527,7 @@ def normal_player(sock, message):
                     guess = take_guess()
                     message["data"][MY_ID] = guess
                 else:
-                    message["data"][MY_ID] = 0
+                    message["data"][MY_ID] = -1
                 pass_message(sock, message)
             elif message["type"] == "informing_guesses":    # Recebe e imprime os palpites de todos
                 message["acks"][MY_ID] = 1
@@ -521,7 +539,7 @@ def normal_player(sock, message):
                     move = make_move()
                     message["data"].append(move)
                 else:
-                    message["data"].append(0)
+                    message["data"].append(-1)
                 pass_message(sock, message)
             elif message["type"] == "informing_moves":      # Recebe e imprime as jogadas de todos
                 print_moves(message["data"])
@@ -534,7 +552,7 @@ def normal_player(sock, message):
                 reset_vars()
                 pass_message(sock, message)
             elif message["type"] == "end_game":
-                print(f"\nO último jogador que se manteve de pé foi o Jogador {message['data']+1}")
+                print(f"\nO último jogador que se manteve de pé foi o Jogador {message['data']}")
                 global PLAYING
                 PLAYING = False
                 pass_message(sock, message)
