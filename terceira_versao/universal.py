@@ -234,67 +234,58 @@ def make_move():
 def count_points():
     global SHACKLE
     #print(f"[DEBUG] dentro da função count_points: MOVES: {MOVES}")
-    #a = input("To na função count_poinst(), precisa implementar a dinamica de jogar carta igual manilha pra ent analisar os naipes!.... (aperta ctrl+C ai vai)")
+    
     suits = ['O', 'E', 'C', 'P']
     index_players = []
-    index_players.append(CARDS.index(MOVES[0][1][0]))
-    index_players.append(CARDS.index(MOVES[1][1][0]))
-    index_players.append(CARDS.index(MOVES[2][1][0]))
-    index_players.append(CARDS.index(MOVES[3][1][0]))
-    if MOVES[0] == MOVES[1]:
-        if MOVES[0][0] == SHACKLE:
-            index_player[0] += suits.index(MOVES[0][1])
-            index_player[1] += suits.index(MOVES[1][1])
-        else:
-            index_player[0] = -1
-            index_player[1] = -1
-            print("Enbuxou as cartas dos jogadores 1 e 2!")
-        if MOVES[2] == MOVES[3]:
-            if MOVES[2] == SHACKLE:
-                index_player[2] += suits.index(MOVES[2][1])
-                index_player[3] += suits.index(MOVES[3][1])
-            else:
-                index_player[2] = -1
-                index_player[3] = -1
-                print("Enbuxou as cartas dos jogadores 3 e 4!")
-    elif MOVES[1] == MOVES[2]:
-        if MOVES[1] == SHACKLE:
-            index_player[1] += suits.index(MOVES[1][1])
-            index_player[2] += suits.index(MOVES[2][1])
-        else:
-            index_player[1] = -1
-            index_player[2] = -1
-            print("Enbuxou as cartas dos jogadores 2 e 3!")
-        if MOVES[0] == MOVES[3]:
-            if MOVES[0] == SHACKLE:
-                index_player[0] += suits.index(MOVES[0][1])
-                index_player[3] += suits.index(MOVES[3][1])
-            else:
-                index_player[0] = -1
-                index_player[3] = -1
-                print("Enbuxou as cartas dos jogadores 1 e 4!")
-    elif MOVES[2] == MOVES[3]:
-        if MOVES[2] == SHACKLE:
-            index_player[2] += suits.index(MOVES[2][1])
-            index_player[3] += suits.index(MOVES[3][1])
-        else:
-            index_player[2] = -1
-            index_player[3] = -1
-            print("Enbuxou as cartas dos jogadores 3 e 4!")
+    same_value = []
+    same_value_shackle = []
+    
+    # Obter os índices das cartas nos movimentos
+    for move in MOVES:
+        index_players.append(CARDS.index(move[1][0]))
+    
+    print(f"[DEBUG] index_players: {index_players}")
+    
+    # Elimina os valores repetidos doferentes da Manilha
+    for i in range(len(index_players)):
+        current_value = index_players[i]
+        same_value = []
+        for j in range(i + 1, len(index_players)):
+            if current_value == index_players[j]:
+                if current_value != CARDS.index(SHACKLE):
+                    same_value.append(i)
+                    same_value.append(j)
+                else:
+                    same_value_shackle.append(i)
+                    same_value_shackle.append(j)
+    
+        for j in same_value:
+            index_players[j] = -1
+    
+    print(f"[DEBUG] antes index_players: {index_players}")
+    
+    # Ajustar índices dos movimentos SHACKLE com o valor do naipe
+    final_points = index_players[:]
+    for index in same_value_shackle:
+        final_points[index] = final_points[index] + suits.index(MOVES[index][1][1]) 
+    
+    print(f"[DEBUG] deppis index_players: {index_players}")
+    print(f"[DEBUG] final_points: {final_points}")
+    print(f"[DEBUG] same_value_shackle: {same_value_shackle}")
 
     sum = 0
-    for i in index_players:
+    for i in final_points:
         sum += i
 
     if sum == -4:
-        #print(f"[DEBUG] Houve 2 enbuxadas consecutivas! Portanto, ninguém ganhou essa rodada.")
+        print(f"[DEBUG] Houve 2 enbuxadas consecutivas! Portanto, ninguém ganhou essa rodada.")
         return -1
     else:
-        max_value = max(index_players)
-        index_winner = index_players.index(max_value)
+        max_value = max(final_points)
+        index_winner = final_points.index(max_value)
         global COUNT_WINS
         COUNT_WINS[index_winner] += 1
-        #print(f"[DEBUG] Quem ganhou a rodada {ROUND} foi o jogador {index_winner}")
+        print(f"[DEBUG] Quem ganhou a rodada {ROUND} foi o jogador {index_winner}")
         return index_winner
 
 def reset_vars():
