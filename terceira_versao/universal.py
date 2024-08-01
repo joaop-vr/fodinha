@@ -546,7 +546,9 @@ def normal_player(sock, message):
                 pass_message(sock, message)
             elif message["type"] == "round_info":           # Imprime as informações da rodada que terminou e atualiza HP
                 print_round_info(message["data"])
-                update_HP(message)
+                if len(MY_CARDS) == 0:
+                    print(f"[DEBUG] Vai atualizar o HP")
+                    update_HP(message)
                 pass_message(sock, message)
             elif message["type"] == "reset_vars":           # Reinicia as variaveis globais para poder iniciar uma nova rodada
                 reset_vars()
