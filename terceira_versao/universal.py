@@ -190,8 +190,9 @@ def print_round_info(message):
 # Atualiza as suas vidas
 def update_HP(message):
     global PLAYERS_HPS, MY_ID
-    #print(f"[DEBUG] PLAYERS_HPS[{MY_ID}] no inicio da rodada: {PLAYERS_HPS[MY_ID]}")
+    print(f"[DEBUG] PLAYERS_HPS[{MY_ID}] no inicio da rodada: {PLAYERS_HPS[MY_ID]}")
     PLAYERS_HPS[MY_ID] = message["data"][2][MY_ID]
+    print(f"[DEBUG] PLAYERS_HPS[{MY_ID}] dps da rodada: {PLAYERS_HPS[MY_ID]}")
     print(f"HP: {PLAYERS_HPS[MY_ID]}")
 
 def check_players_alive():
