@@ -334,10 +334,10 @@ def finish_round():
         if old_players_hp[i] > 0 and PLAYERS_HPS[i] <= 0 :
             new_dead_players.append(i)
 
-    #print(f"[DEBUG] Estou dentro da função finish_round()")
-    #print(f"[DEBUG] GUESSES: {GUESSES}")
-    #print(f"[DEBUG] COUNT_WINS: {COUNT_WINS}")
-    #print(f"[DEBUG] final_points: {final_points}")
+    print(f"[DEBUG] Estou dentro da função finish_round()")
+    print(f"[DEBUG] GUESSES: {GUESSES}")
+    print(f"[DEBUG] COUNT_WINS: {COUNT_WINS}")
+    print(f"[DEBUG] final_points: {final_points}")
     
     return [index_winner, new_dead_players, PLAYERS_HPS]
 
