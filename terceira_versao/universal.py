@@ -168,7 +168,7 @@ def print_previous_moves(moves):
 def print_moves(moves):
     print(f"\n")
     for move in moves:
-        if move != -1:
+        if move[0] != -1:
             print(f"O jogador {move[0]+1} jogou: {move[1]}.")
         else:
             print(f"O jogador {move[0]+1} foi desqualificado.")
