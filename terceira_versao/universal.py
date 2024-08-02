@@ -452,8 +452,9 @@ def dealer(sock, message):
                  round_info[0] = index_winner  # Armazena o índice do vencedor
 
                  # Adiciona as informações dos jogadores que morreram e HP dos players
-                 
-                 if SUB_ROUND == ROUND:
+                 print(f"[DEBUG] SUB_ROUND: {SUB_ROUND} | ROUND: {ROUND}")
+                 print(f"[DEBUG] MY_CARDS := {MY_CARDS}")
+                 if len(MY_CARDS) == 0 or SUB_ROUND == ROUND:
                      aux = finish_round()
                      round_info[1] = aux[0]  # Lista de jogadores que morreram
                      round_info[2] = aux[1]  # Lista de HPs dos jogadores
@@ -470,7 +471,7 @@ def dealer(sock, message):
                  #print(f"[DEBUG] Fez o appende de: {msg}")
              elif message["type"] == "round_info":
                  print_round_info(message["data"])
-                 if len(MY_CARDS) == 0 and PLAYERS_HPS[MY_ID]:
+                 if len(MY_CARDS) == 0:
                    #print(f"[DEBUG] Vai atualizar o HP")
                     update_HP(message)
                  players_alive = check_players_alive()
