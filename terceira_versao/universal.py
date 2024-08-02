@@ -243,7 +243,7 @@ def make_move():
     if PLAYERS_HPS[MY_ID] > 0:
         print(f"Suas cartas: {MY_CARDS}")
         response = input("Informe sua jogada: ")
-        if response == "^[[B" and len(MY_CARDS) == 1:
+        if response == "-":
             response = MY_CARDS.pop()
         else:
             response.upper()
@@ -251,7 +251,7 @@ def make_move():
                 response = input("Ops! Sua resposta não foi interpretada como uma carta que você possue, tente novamente: ")
             MY_CARDS.remove(response)
     else:
-        response = -1
+        response = [1]
         print("Você morreu. Mensagem sendo passada adiante...")
     return (MY_ID, response)
 
