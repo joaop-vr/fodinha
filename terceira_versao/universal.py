@@ -224,8 +224,8 @@ def take_guess(count_guesses=0):
                 print(f"Entrada inválida: {e}. Tente novamente.")
 
         # Verifica se o palpite é maior que o número de cartas que possui
-        while guess > len(MY_CARDS):
-            print("Não é possível dar um palpite maior que o número de cartas que possui.")
+        while guess > len(MY_CARDS) or guess < 0::
+            print("Não é possível dar um palpite maior que o número de cartas que possui ou menor que zero.")
             guess = int(input("Dê outro palpite: "))
 
         # Verifica se a soma dos palpites é igual ao número de rodadas
@@ -261,7 +261,7 @@ def make_move():
 
 def count_points():
     global SHACKLE, MOVES
-   #print(f"[DEBUG] dentro da função count_points: MOVES: {MOVES}")
+    #print(f"[DEBUG] dentro da função count_points: MOVES: {MOVES}")
     
     suits = ['O', 'E', 'C', 'P']
     index_players = []
