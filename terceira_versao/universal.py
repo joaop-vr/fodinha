@@ -138,6 +138,7 @@ def print_previous_guesses(guesses):
     return
 
 def print_guesses(guesses):
+    print(f"[DEBUG] guesses: {guesses}")
     print(f"\nPalpites:")
     for i in range(len(guesses)):
         if guesses[i] != -1:
@@ -251,6 +252,8 @@ def make_move():
             MY_CARDS.remove(response)
     else:
         response = -1
+        print("Você morreu. Mensagem sendo passada adiante...")
+            message["acks"][MY_ID] = -1
     return (MY_ID, response)
 
 def count_points():
@@ -263,7 +266,7 @@ def count_points():
     same_value_shackle = []
 
     MOVES = sorted(MOVES, key=lambda x: x[0])
-    print(f"MOVES dps da ordenação: {MOVES}")
+    #print(f"[DEBUG] MOVES dps da ordenação: {MOVES}")
     
     # Obter os índices das cartas nos movimentos
     for move in MOVES:
@@ -535,58 +538,61 @@ def normal_player(sock, message):
         #print(f"Recebi uma mensagem: {message}")
         #a = input(f"\nCheckpoint")
         # Verifica se o jogador está fora do jogo
-        if PLAYERS_HPS[MY_ID] <= 0 and message["type"] != "end_game":
-            print("Você morreu. Mensagem sendo passada adiante...")
+        #if PLAYERS_HPS[MY_ID] <= 0 and message["type"] != "end_game":
+        #    print("Você morreu. Mensagem sendo passada adiante...")
+        #    message["acks"][MY_ID] = -1
+        #    pass_message(sock, message)
+        #else:
+        if PLAYERS_HPS[MY_ID] <= 0:
             message["acks"][MY_ID] = -1
-            pass_message(sock, message)
         else:
             message["acks"][MY_ID] = 1
-            if message["type"] == "init":                   # Setando as variaveis do player no inicio da rodada
-                global DEALER_ID, SHACKLE, MY_CARDS, ROUND
-                DEALER_ID = message["from_player"]
-                # message['data'][MY_ID] := [[cartas sorteadas do player],[Manilha],[Carta mais forte],[Configuração do poder das cartas nessa partida]]
-                ##print(f"[DEBUG] message[data]: {message['data']}")
-                ##print(f"[DEBUG] aux := {message['data'][MY_ID]}")
-                aux = message['data'][MY_ID]
-                MY_CARDS = aux[0]
-                SHACKLE = aux[1]
-                CARDS = aux[2]
-                ROUND = len(MY_CARDS)
-                print(f"\nRodada: {ROUND}")
-                print(f"Manilha: {SHACKLE}")
-                print(f"Configuração da partida: {CARDS}")
-                print(f"Suas cartas: {MY_CARDS}.")
-                pass_message(sock, message)
-            elif message["type"] == "take_guesses":         # Faz o palpite
-                guess = take_guess()
-                message["data"][MY_ID] = guess
-                pass_message(sock, message)
-            elif message["type"] == "informing_guesses":    # Recebe e imprime os palpites de todos
-                message["acks"][MY_ID] = 1
-                print_guesses(message["data"])
-                pass_message(sock, message)
-            elif message["type"] == "make_move":            # Faz a jogada
-                print_previous_moves(message["data"])
-                move = make_move()
-                message["data"].append(move)
-                pass_message(sock, message)
-            elif message["type"] == "informing_moves":      # Recebe e imprime as jogadas de todos
-                print_moves(message["data"])
-                pass_message(sock, message)
-            elif message["type"] == "round_info":           # Imprime as informações da rodada que terminou e atualiza HP
-                print_round_info(message["data"])
-                if len(MY_CARDS) == 0:
-                   #print(f"[DEBUG] Vai atualizar o HP")
-                    update_HP(message)
-                pass_message(sock, message)
-            elif message["type"] == "reset_vars":           # Reinicia as variaveis globais para poder iniciar uma nova rodada
-                reset_vars()
-                pass_message(sock, message)
-            elif message["type"] == "end_game":
-                print(f"\nO último jogador que se manteve de pé foi o Jogador {message['data']}")
-                global PLAYING
-                PLAYING = False
-                pass_message(sock, message)
+        if message["type"] == "init":                   # Setando as variaveis do player no inicio da rodada
+            global DEALER_ID, SHACKLE, MY_CARDS, ROUND
+            DEALER_ID = message["from_player"]
+            # message['data'][MY_ID] := [[cartas sorteadas do player],[Manilha],[Carta mais forte],[Configuração do poder das cartas nessa partida]]
+            ##print(f"[DEBUG] message[data]: {message['data']}")
+            ##print(f"[DEBUG] aux := {message['data'][MY_ID]}")
+            aux = message['data'][MY_ID]
+            MY_CARDS = aux[0]
+            SHACKLE = aux[1]
+            CARDS = aux[2]
+            ROUND = len(MY_CARDS)
+            print(f"\nRodada: {ROUND}")
+            print(f"Manilha: {SHACKLE}")
+            print(f"Configuração da partida: {CARDS}")
+            print(f"Suas cartas: {MY_CARDS}.")
+            pass_message(sock, message)
+        elif message["type"] == "take_guesses":         # Faz o palpite
+            guess = take_guess()
+            message["data"][MY_ID] = guess
+            pass_message(sock, message)
+        elif message["type"] == "informing_guesses":    # Recebe e imprime os palpites de todos
+            message["acks"][MY_ID] = 1
+            print_guesses(message["data"])
+            pass_message(sock, message)
+        elif message["type"] == "make_move":            # Faz a jogada
+            print_previous_moves(message["data"])
+            move = make_move()
+            message["data"].append(move)
+            pass_message(sock, message)
+        elif message["type"] == "informing_moves":      # Recebe e imprime as jogadas de todos
+            print_moves(message["data"])
+            pass_message(sock, message)
+        elif message["type"] == "round_info":           # Imprime as informações da rodada que terminou e atualiza HP
+            print_round_info(message["data"])
+            if len(MY_CARDS) == 0:
+               #print(f"[DEBUG] Vai atualizar o HP")
+                update_HP(message)
+            pass_message(sock, message)
+        elif message["type"] == "reset_vars":           # Reinicia as variaveis globais para poder iniciar uma nova rodada
+            reset_vars()
+            pass_message(sock, message)
+        elif message["type"] == "end_game":
+            print(f"\nO último jogador que se manteve de pé foi o Jogador {message['data']}")
+            global PLAYING
+            PLAYING = False
+            pass_message(sock, message)
     elif message["broadcast"] == False and message["to_player"] == MY_ID:
         if message["type"] == "dealer_token":
             global IS_DEALER
