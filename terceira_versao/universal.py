@@ -348,10 +348,10 @@ def finish_round():
     for count in COUNT_WINS:
         count = 0
 
-   print(f"[DEBUG] Estou dentro da função finish_round()")
-   print(f"[DEBUG] GUESSES: {GUESSES}")
-   print(f"[DEBUG] COUNT_WINS: {COUNT_WINS}")
-   print(f"[DEBUG] final_points: {final_points}")
+    print(f"[DEBUG] Estou dentro da função finish_round()")
+    print(f"[DEBUG] GUESSES: {GUESSES}")
+    print(f"[DEBUG] COUNT_WINS: {COUNT_WINS}")
+    print(f"[DEBUG] final_points: {final_points}")
     
     #return [index_winner, new_dead_players, PLAYERS_HPS]
     return [new_dead_players, PLAYERS_HPS]
