@@ -175,7 +175,7 @@ def print_moves(moves):
 
 def print_round_info(message):
     # Imprime o ganahdor da sub-rodada
-    print(f"[DEBUG] Informações finais da rodada {ROUND}: {message}")
+   #print(f"[DEBUG] Informações finais da rodada {ROUND}: {message}")
     print(f"\n### Informações da rodada ###")
     winner_index = message[0]
     if winner_index != -1:
@@ -190,9 +190,9 @@ def print_round_info(message):
 # Atualiza as suas vidas
 def update_HP(message):
     global PLAYERS_HPS, MY_ID
-    print(f"[DEBUG] PLAYERS_HPS[{MY_ID}] no inicio da rodada: {PLAYERS_HPS[MY_ID]}")
+   #print(f"[DEBUG] PLAYERS_HPS[{MY_ID}] no inicio da rodada: {PLAYERS_HPS[MY_ID]}")
     PLAYERS_HPS[MY_ID] = message["data"][2][MY_ID]
-    print(f"[DEBUG] PLAYERS_HPS[{MY_ID}] dps da rodada: {PLAYERS_HPS[MY_ID]}")
+   #print(f"[DEBUG] PLAYERS_HPS[{MY_ID}] dps da rodada: {PLAYERS_HPS[MY_ID]}")
     print(f"HP: {PLAYERS_HPS[MY_ID]}")
 
 def check_players_alive():
@@ -255,7 +255,7 @@ def make_move():
 
 def count_points():
     global SHACKLE, MOVES
-    print(f"[DEBUG] dentro da função count_points: MOVES: {MOVES}")
+   #print(f"[DEBUG] dentro da função count_points: MOVES: {MOVES}")
     
     suits = ['O', 'E', 'C', 'P']
     index_players = []
@@ -269,7 +269,7 @@ def count_points():
     for move in MOVES:
         index_players.append(CARDS.index(move[1][0]))
     
-    print(f"[DEBUG] index_players: {index_players}")
+   #print(f"[DEBUG] index_players: {index_players}")
     
     # Elimina os valores repetidos doferentes da Manilha
     for i in range(len(index_players)):
@@ -287,30 +287,30 @@ def count_points():
         for j in same_value:
             index_players[j] = -1
     
-    print(f"[DEBUG] antes index_players: {index_players}")
+   #print(f"[DEBUG] antes index_players: {index_players}")
     
     # Ajustar índices dos movimentos SHACKLE com o valor do naipe
     final_points = index_players[:]
     for index in same_value_shackle:
         final_points[index] = final_points[index] + suits.index(MOVES[index][1][1]) 
     
-    print(f"[DEBUG] deppis index_players: {index_players}")
-    print(f"[DEBUG] final_points: {final_points}")
-    print(f"[DEBUG] same_value_shackle: {same_value_shackle}")
+   #print(f"[DEBUG] deppis index_players: {index_players}")
+   #print(f"[DEBUG] final_points: {final_points}")
+   #print(f"[DEBUG] same_value_shackle: {same_value_shackle}")
 
     sum = 0
     for i in final_points:
         sum += i
 
     if sum == -4:
-        print(f"[DEBUG] Houve 2 enbuxadas consecutivas! Portanto, ninguém ganhou essa rodada.")
+       #print(f"[DEBUG] Houve 2 enbuxadas consecutivas! Portanto, ninguém ganhou essa rodada.")
         return -1
     else:
         max_value = max(final_points)
         index_winner = final_points.index(max_value)
         global COUNT_WINS
         COUNT_WINS[index_winner] += 1
-        print(f"[DEBUG] Quem ganhou a rodada {ROUND} foi o jogador {index_winner}+1")
+       #print(f"[DEBUG] Quem ganhou a rodada {ROUND} foi o jogador {index_winner}+1")
         return index_winner
 
 def reset_vars():
@@ -348,10 +348,10 @@ def finish_round():
     for count in COUNT_WINS:
         count = 0
 
-    print(f"[DEBUG] Estou dentro da função finish_round()")
-    print(f"[DEBUG] GUESSES: {GUESSES}")
-    print(f"[DEBUG] COUNT_WINS: {COUNT_WINS}")
-    print(f"[DEBUG] final_points: {final_points}")
+   #print(f"[DEBUG] Estou dentro da função finish_round()")
+   #print(f"[DEBUG] GUESSES: {GUESSES}")
+   #print(f"[DEBUG] COUNT_WINS: {COUNT_WINS}")
+   #print(f"[DEBUG] final_points: {final_points}")
     
     #return [index_winner, new_dead_players, PLAYERS_HPS]
     return [new_dead_players, PLAYERS_HPS]
@@ -460,7 +460,7 @@ def dealer(sock, message):
              elif message["type"] == "round_info":
                  print_round_info(message["data"])
                  if len(MY_CARDS) == 0:
-                    print(f"[DEBUG] Vai atualizar o HP")
+                   #print(f"[DEBUG] Vai atualizar o HP")
                     update_HP(message)
                  players_alive = check_players_alive()
                  if len(players_alive) <= 1:
@@ -572,7 +572,7 @@ def normal_player(sock, message):
             elif message["type"] == "round_info":           # Imprime as informações da rodada que terminou e atualiza HP
                 print_round_info(message["data"])
                 if len(MY_CARDS) == 0:
-                    print(f"[DEBUG] Vai atualizar o HP")
+                   #print(f"[DEBUG] Vai atualizar o HP")
                     update_HP(message)
                 pass_message(sock, message)
             elif message["type"] == "reset_vars":           # Reinicia as variaveis globais para poder iniciar uma nova rodada
