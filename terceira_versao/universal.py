@@ -470,7 +470,7 @@ def dealer(sock, message):
                  #print(f"[DEBUG] Fez o appende de: {msg}")
              elif message["type"] == "round_info":
                  print_round_info(message["data"])
-                 if SUB_ROUND == ROUND == 0:
+                 if len(MY_CARDS) == 0 and PLAYERS_HPS[MY_ID]:
                    #print(f"[DEBUG] Vai atualizar o HP")
                     update_HP(message)
                  players_alive = check_players_alive()
