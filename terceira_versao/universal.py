@@ -7,6 +7,7 @@ import random
 PLAYING = True
 SHACKLE = 0
 ROUND = 0
+SUB_ROUND = 0
 TOKEN = False
 IS_DEALER = False
 DEALER_ID = 0
@@ -29,7 +30,7 @@ NEXT_PORT = 0
 
 # Função de inicialização do jogo
 def init_round(sock):
-    global TOKEN, MY_LIST, IS_DEALER, ROUND, TABLE_CARD, MY_CARDS
+    global TOKEN, MY_LIST, IS_DEALER, ROUND, TABLE_CARD, MY_CARDS, SUB_ROUND
 
     print("Você é o carteador da rodada!")
 
@@ -38,6 +39,7 @@ def init_round(sock):
 
     # Contador de rodadas
     ROUND = ROUND + 1
+    SUB_ROUND = 0
 
     # Distribui as cartas para os jogadores e armazena em 'player_cards'
     player_cards = distribute_cards()
@@ -239,7 +241,8 @@ def take_guess(count_guesses=0):
     return guess
 
 def make_move():
-    global MY_CARDS, MY_ID, PLAYERS_HPS
+    global MY_CARDS, MY_ID, PLAYERS_HPS, SUB_ROUND
+    SUB_ROUND += 1
     response = 0
     if PLAYERS_HPS[MY_ID] > 0:
         print(f"Suas cartas: {MY_CARDS}")
@@ -449,7 +452,8 @@ def dealer(sock, message):
                  round_info[0] = index_winner  # Armazena o índice do vencedor
 
                  # Adiciona as informações dos jogadores que morreram e HP dos players
-                 if len(MY_CARDS) == 0:
+                 
+                 if SUB_ROUND == ROUND:
                      aux = finish_round()
                      round_info[1] = aux[0]  # Lista de jogadores que morreram
                      round_info[2] = aux[1]  # Lista de HPs dos jogadores
@@ -466,7 +470,7 @@ def dealer(sock, message):
                  #print(f"[DEBUG] Fez o appende de: {msg}")
              elif message["type"] == "round_info":
                  print_round_info(message["data"])
-                 if len(MY_CARDS) == 0:
+                 if SUB_ROUND == ROUND == 0:
                    #print(f"[DEBUG] Vai atualizar o HP")
                     update_HP(message)
                  players_alive = check_players_alive()
