@@ -161,7 +161,7 @@ def print_previous_moves(moves):
         for move in moves:
             if move != -1:
                 aux.append(move)
-        print(f"Cartas já jogadas: {aux}")
+        print(f"\nCartas já jogadas: {aux}")
     return
 
 def print_moves(moves):
@@ -175,7 +175,7 @@ def print_moves(moves):
 
 def print_round_info(message):
     # Imprime o ganahdor da sub-rodada
-    #print(f"[DEBUG] Informações finais da rodada {ROUND}: {message}")
+    print(f"[DEBUG] Informações finais da rodada {ROUND}: {message}")
     print(f"\n### Informações da rodada ###")
     winner_index = message[0]
     if winner_index != -1:
@@ -205,44 +205,52 @@ def check_players_alive():
 
 # Função para o usuário informar o palpite
 def take_guess(count_guesses=0):
+    global PLAYERS_HPS, MY_ID
     #print(f"[DEBUG] MY_CARDS: {MY_CARDS}")
     # Solicita o palpite do usuário
-    while True:
-        try:
-            guess = int(input("Informe o seu palpite: "))
-            if guess < 0:
-                raise ValueError("O palpite deve ser um inteiro natural (não negativo).")
-            break
-        except ValueError as e:
-            print(f"Entrada inválida: {e}. Tente novamente.")
+    guess = 0
+    if PLAYERS_HPS[MY_ID] > 0:
+        while True:
+            try:
+                guess = int(input("Informe o seu palpite: "))
+                if guess < 0:
+                    raise ValueError("O palpite deve ser um inteiro natural (não negativo).")
+                break
+            except ValueError as e:
+                print(f"Entrada inválida: {e}. Tente novamente.")
 
-    # Verifica se o palpite é maior que o número de cartas que possui
-    while guess > len(MY_CARDS):
-        print("Não é possível dar um palpite maior que o número de cartas que possui.")
-        guess = int(input("Dê outro palpite: "))
-
-    # Verifica se a soma dos palpites é igual ao número de rodadas
-    if count_guesses != 0 and ROUND >= 2:
-        while count_guesses + guess == ROUND:
-            print(f"A soma dos palpites deve ser diferente de {ROUND}.")
+        # Verifica se o palpite é maior que o número de cartas que possui
+        while guess > len(MY_CARDS):
+            print("Não é possível dar um palpite maior que o número de cartas que possui.")
             guess = int(input("Dê outro palpite: "))
-            while guess > len(MY_CARDS):
-                print("Não é possível dar um palpite maior que o número de cartas que possui.")
-                guess = int(input("Dê outro palpite: "))
 
+        # Verifica se a soma dos palpites é igual ao número de rodadas
+        if count_guesses != 0 and ROUND >= 2:
+            while count_guesses + guess == ROUND:
+                print(f"A soma dos palpites deve ser diferente de {ROUND}.")
+                guess = int(input("Dê outro palpite: "))
+                while guess > len(MY_CARDS):
+                    print("Não é possível dar um palpite maior que o número de cartas que possui.")
+                    guess = int(input("Dê outro palpite: "))
+    else:
+        guess = -1
     return guess
 
 def make_move():
-    global MY_CARDS, MY_ID
-    print(f"\nSuas cartas: {MY_CARDS}")
-    response = input("Informe sua jogada: ")
-    if response == "^[[B" and len(MY_CARDS) == 1:
-        response = MY_CARDS.pop()
+    global MY_CARDS, MY_ID, PLAYERS_HPS
+    response = 0
+    if PLAYERS_HPS[MY_ID] > 0:
+        print(f"Suas cartas: {MY_CARDS}")
+        response = input("Informe sua jogada: ")
+        if response == "^[[B" and len(MY_CARDS) == 1:
+            response = MY_CARDS.pop()
+        else:
+            response.upper()
+            while response not in MY_CARDS:
+                response = input("Ops! Sua resposta não foi interpretada como uma carta que você possue, tente novamente: ")
+            MY_CARDS.remove(response)
     else:
-        response.upper()
-        while response not in MY_CARDS:
-            response = input("Ops! Sua resposta não foi interpretada como uma carta que você possue, tente novamente: ")
-        MY_CARDS.remove(response)
+        response = -1
     return (MY_ID, response)
 
 def count_points():
@@ -316,8 +324,10 @@ def reset_vars():
     return 
     
 def finish_round():
+    global COUNT_WINS
+
     # Contabiliza o vencedor, se não houve vencedor ent recebe -1
-    index_winner = count_points()
+    #index_winner = count_points()
     
     # Subtrai elemento por elemento
     final_points = [guess - win for guess, win in zip(GUESSES, COUNT_WINS)]
@@ -334,12 +344,17 @@ def finish_round():
         if old_players_hp[i] > 0 and PLAYERS_HPS[i] <= 0 :
             new_dead_players.append(i)
 
+    # Reseta o contador de vitórias
+    for count in COUNT_WINS:
+        count = 0
+
     print(f"[DEBUG] Estou dentro da função finish_round()")
     print(f"[DEBUG] GUESSES: {GUESSES}")
     print(f"[DEBUG] COUNT_WINS: {COUNT_WINS}")
     print(f"[DEBUG] final_points: {final_points}")
     
-    return [index_winner, new_dead_players, PLAYERS_HPS]
+    #return [index_winner, new_dead_players, PLAYERS_HPS]
+    return [new_dead_players, PLAYERS_HPS]
 
 # Função para processar as mensagens do dealer
 def dealer(sock, message):
@@ -365,14 +380,11 @@ def dealer(sock, message):
              if message["type"] == "take_guesses":
                  global GUESSES, PLAYERS_HPS
                  GUESSES = message["data"]
-                 if PLAYERS_HPS[MY_ID] > 0:
-                     sum_guesses = 0
-                     for guess in message["data"]:
-                        sum_guesses += guess
-                     guess = take_guess(sum_guesses)
-                     GUESSES[MY_ID] = guess
-                 else:
-                     GUESSES[MY_ID] = -1
+                 sum_guesses = 0
+                 for guess in message["data"]:
+                    sum_guesses += guess
+                 guess = take_guess(sum_guesses)
+                 GUESSES[MY_ID] = guess
                  msg = {
                     "type": "informing_guesses",
                     "broadcast": True,
@@ -398,12 +410,9 @@ def dealer(sock, message):
              elif message["type"] == "make_move":
                  global MOVES
                  MOVES = message["data"]
-                 if PLAYERS_HPS[MY_ID] > 0:
-                     print_previous_moves(message["data"])
-                     move = make_move()
-                     MOVES.append(move)
-                 else:
-                     MOVES.append(-1)
+                 print_previous_moves(message["data"])
+                 move = make_move()
+                 MOVES.append(move)
                  msg = {
                     "type": "informing_moves",
                     "broadcast": True,
@@ -415,8 +424,29 @@ def dealer(sock, message):
                  MY_LIST.append(msg)
                  #print(f"[DEBUG] Fez o appende de: {msg}")
              elif message["type"] == "informing_moves":
+                 #print_moves(message["data"])
+                 #round_info = [0, [], []]
+                 # Contabiliza o vencedor, se não houve vencedor ent recebe -1
+                 #index_winner = count_points()
+                 #round_info[0] = index_winner
+                 # Adiciona as informações dos jogadores que morreram e HP dos players
+                 #if len(MY_CARDS) == 0:
+                 #    aux = finish_round()
+                 #    round_info[1] = aux[0]
+                 #    round_info[2] = aux[1]
                  print_moves(message["data"])
-                 round_info = finish_round()
+                 round_info = [0, [], []]  # Inicializa a lista round_info com três elementos
+
+                 # Contabiliza o vencedor, se não houve vencedor ent recebe -1
+                 index_winner = count_points()
+                 round_info[0] = index_winner  # Armazena o índice do vencedor
+
+                 # Adiciona as informações dos jogadores que morreram e HP dos players
+                 if len(MY_CARDS) == 0:
+                     aux = finish_round()
+                     round_info[1] = aux[0]  # Lista de jogadores que morreram
+                     round_info[2] = aux[1]  # Lista de HPs dos jogadores
+
                  msg = {
                     "type": "round_info",
                     "broadcast": True,
@@ -501,7 +531,7 @@ def normal_player(sock, message):
         #print(f"Recebi uma mensagem: {message}")
         #a = input(f"\nCheckpoint")
         # Verifica se o jogador está fora do jogo
-        if PLAYERS_HPS[MY_ID] <= 0 and message["data"] != "end_game":
+        if PLAYERS_HPS[MY_ID] <= 0 and message["type"] != "end_game":
             print("Você morreu. Mensagem sendo passada adiante...")
             message["acks"][MY_ID] = -1
             pass_message(sock, message)
@@ -524,23 +554,17 @@ def normal_player(sock, message):
                 print(f"Suas cartas: {MY_CARDS}.")
                 pass_message(sock, message)
             elif message["type"] == "take_guesses":         # Faz o palpite
-                if PLAYERS_HPS[MY_ID] > 0:
-                    guess = take_guess()
-                    message["data"][MY_ID] = guess
-                else:
-                    message["data"][MY_ID] = -1
+                guess = take_guess()
+                message["data"][MY_ID] = guess
                 pass_message(sock, message)
             elif message["type"] == "informing_guesses":    # Recebe e imprime os palpites de todos
                 message["acks"][MY_ID] = 1
                 print_guesses(message["data"])
                 pass_message(sock, message)
             elif message["type"] == "make_move":            # Faz a jogada
-                if PLAYERS_HPS[MY_ID] > 0:
-                    print_previous_moves(message["data"])
-                    move = make_move()
-                    message["data"].append(move)
-                else:
-                    message["data"].append(-1)
+                print_previous_moves(message["data"])
+                move = make_move()
+                message["data"].append(move)
                 pass_message(sock, message)
             elif message["type"] == "informing_moves":      # Recebe e imprime as jogadas de todos
                 print_moves(message["data"])
