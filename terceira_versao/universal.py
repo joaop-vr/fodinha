@@ -140,7 +140,7 @@ def print_previous_guesses(guesses):
     return
 
 def print_guesses(guesses):
-    print(f"[DEBUG] guesses: {guesses}")
+   #print(f"[DEBUG] guesses: {guesses}")
     print(f"\nPalpites:")
     for i in range(len(guesses)):
         if guesses[i] != -1:
@@ -193,7 +193,7 @@ def print_round_info(message):
 # Atualiza as suas vidas
 def update_HP(message):
     global PLAYERS_HPS, MY_ID
-    print(f"[DEBUG] update-hp: {message}")
+   #print(f"[DEBUG] update-hp: {message}")
    #print(f"[DEBUG] PLAYERS_HPS[{MY_ID}] no inicio da rodada: {PLAYERS_HPS[MY_ID]}"
     PLAYERS_HPS[MY_ID] = message["data"][2][MY_ID]
    #print(f"[DEBUG] PLAYERS_HPS[{MY_ID}] dps da rodada: {PLAYERS_HPS[MY_ID]}")
@@ -358,10 +358,10 @@ def finish_round():
     for count in COUNT_WINS:
         count = 0
 
-    print(f"[DEBUG] Estou dentro da função finish_round()")
-    print(f"[DEBUG] GUESSES: {GUESSES}")
-    print(f"[DEBUG] COUNT_WINS: {COUNT_WINS}")
-    print(f"[DEBUG] final_points: {final_points}")
+   #print(f"[DEBUG] Estou dentro da função finish_round()")
+   #print(f"[DEBUG] GUESSES: {GUESSES}")
+   #print(f"[DEBUG] COUNT_WINS: {COUNT_WINS}")
+   #print(f"[DEBUG] final_points: {final_points}")
     
     #return [index_winner, new_dead_players, PLAYERS_HPS]
     return [new_dead_players, PLAYERS_HPS]
@@ -452,8 +452,8 @@ def dealer(sock, message):
                  round_info[0] = index_winner  # Armazena o índice do vencedor
 
                  # Adiciona as informações dos jogadores que morreram e HP dos players
-                 print(f"[DEBUG] SUB_ROUND: {SUB_ROUND} | ROUND: {ROUND}")
-                 print(f"[DEBUG] MY_CARDS := {MY_CARDS}")
+                #print(f"[DEBUG] SUB_ROUND: {SUB_ROUND} | ROUND: {ROUND}")
+                #print(f"[DEBUG] MY_CARDS := {MY_CARDS}")
                  if len(MY_CARDS) == 0 or SUB_ROUND == ROUND:
                      aux = finish_round()
                      round_info[1] = aux[0]  # Lista de jogadores que morreram
