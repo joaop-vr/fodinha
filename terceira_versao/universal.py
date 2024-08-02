@@ -191,7 +191,9 @@ def print_round_info(message):
 # Atualiza as suas vidas
 def update_HP(message):
     global PLAYERS_HPS, MY_ID
+    print(f"[DEBUG] update-hp: {message}")
    #print(f"[DEBUG] PLAYERS_HPS[{MY_ID}] no inicio da rodada: {PLAYERS_HPS[MY_ID]}")
+    if 
     PLAYERS_HPS[MY_ID] = message["data"][2][MY_ID]
    #print(f"[DEBUG] PLAYERS_HPS[{MY_ID}] dps da rodada: {PLAYERS_HPS[MY_ID]}")
     print(f"HP: {PLAYERS_HPS[MY_ID]}")
@@ -251,7 +253,7 @@ def make_move():
                 response = input("Ops! Sua resposta não foi interpretada como uma carta que você possue, tente novamente: ")
             MY_CARDS.remove(response)
     else:
-        response = [1]
+        response = [-1]
         print("Você morreu. Mensagem sendo passada adiante...")
     return (MY_ID, response)
 
