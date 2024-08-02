@@ -267,7 +267,11 @@ def count_points():
     
     # Obter os índices das cartas nos movimentos
     for move in MOVES:
-        index_players.append(CARDS.index(move[1][0]))
+        try:
+            card_index = CARDS.index(move[1][0])
+        except ValueError:
+            card_index = -1 # O jogaor morreu, então a carta jogada (-1) não está no paralho
+        index_players.append(card_index))
     
    #print(f"[DEBUG] index_players: {index_players}")
     
