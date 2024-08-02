@@ -253,7 +253,6 @@ def make_move():
     else:
         response = -1
         print("Você morreu. Mensagem sendo passada adiante...")
-            message["acks"][MY_ID] = -1
     return (MY_ID, response)
 
 def count_points():
