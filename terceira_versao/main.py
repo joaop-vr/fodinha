@@ -31,14 +31,11 @@ NEXT_PORT = 0
 def init_round(sock):
     global MY_LIST, IS_DEALER, ROUND, TABLE_CARD, MY_CARDS, SUB_ROUND
 
-    print("Você é o carteador da rodada!")
+    #print("Você é o carteador da rodada!")
 
     # Contador de rodadas
     ROUND = ROUND + 1
     SUB_ROUND = 0
-
-    # Distribui as cartas para os jogadores e armazena em 'player_cards'
-    player_cards = distribute_cards()
 
     # Configurando o jogador que começou o jogo como carteador (dealer)
     IS_DEALER = True
@@ -50,36 +47,47 @@ def init_round(sock):
 
     # Engatilha a mensagem de distribuição de cartas
     msg = {
-        "type": "init",
+        "type": "informing_dealer",
         "broadcast": True,
         "from_player": MY_ID,
         "to_player": destination,  
         "data": player_cards,
         "acks": [0, 0, 0, 0]
     }
-    MY_LIST.append(msg)
+    #MY_LIST.append(msg)
+    
+    # Engatilha a mensagem de distribuição de cartas
+    # msg = {
+    #     "type": "init",
+    #     "broadcast": True,
+    #     "from_player": MY_ID,
+    #     "to_player": destination,  
+    #     "data": player_cards,
+    #     "acks": [0, 0, 0, 0]
+    # }
+    # #MY_LIST.append(msg)
 
     # Engatilha a mensagem de solicitação de palpites
-    msg = {
-        "type": "take_guesses",
-        "broadcast": True,
-        "from_player": MY_ID,
-        "to_player": destination, 
-        "data": [0, 0, 0, 0],
-        "acks": [0, 0, 0, 0]
-    }
-    MY_LIST.append(msg)
+    # msg = {
+    #     "type": "take_guesses",
+    #     "broadcast": True,
+    #     "from_player": MY_ID,
+    #     "to_player": destination, 
+    #     "data": [0, 0, 0, 0],
+    #     "acks": [0, 0, 0, 0]
+    # }
+    #MY_LIST.append(msg)
 
     # Guardando as cartas do carteador e imprime 
     # as informações iniciais do carteador
-    MY_CARDS = player_cards[MY_ID][0]
-    print(f"\nRodada: {ROUND}")
-    print(f"Manilha: {SHACKLE}")
-    print(f"Configuração da partida: {CARDS}")
-    print(f"Suas cartas: {MY_CARDS}.")
+    # MY_CARDS = player_cards[MY_ID][0]
+    # print(f"\nRodada: {ROUND}")
+    # print(f"Manilha: {SHACKLE}")
+    # print(f"Configuração da partida: {CARDS}")
+    # print(f"Suas cartas: {MY_CARDS}.")
     
     # Envia a primeira mensagem da lista
-    msg = MY_LIST.pop(0)
+    #msg = MY_LIST.pop(0)
     send_message(sock, msg)
 
 # Função para distribuir cartas
@@ -180,6 +188,10 @@ def print_round_info(message):
         print(f"Jogadores eliminados: {message[1]}")
     return
 
+def print_dealer(message):
+    print(f"O Carteador dessa rodada é o Jogador {message['from_player']+1}!")
+    return
+    
 # Atualiza as suas vidas
 def update_HP(message):
     global PLAYERS_HPS, MY_ID
@@ -341,7 +353,9 @@ def dealer(sock, message):
          # Verifica se todos responderam ACK
          error = False
          for i in range(len(message["acks"])):
-             if message["acks"][i] == 0 and i != MY_ID:
+             if len(message["acks"]) == 1 and message["acks"][0] == 0: # Bastão foi perdido
+                 error = True
+             elif message["acks"][i] == 0 and i != MY_ID: # Alguem nao respondeu ACK 1
                  error = True
                  break
 
@@ -361,7 +375,34 @@ def dealer(sock, message):
              destination = []
              for i in range(1,4):
                  destination.append((MY_ID + i) % 4) # Isso possibilita a universalização do carteador
-             if message["type"] == "take_guesses":
+             # Desenvolve os estados do jogo
+             msg = {}
+             if message["type"] == "informing_dealer":
+                 # Distribui as cartas para os jogadores e armazena em 'player_cards'
+                 player_cards = distribute_cards()
+                 msg = {
+                    "type": "init",
+                    "broadcast": True,
+                    "from_player": MY_ID,
+                    "to_player": destination,  
+                    "data": player_cards,
+                    "acks": [0, 0, 0, 0]
+                 }
+             elif message["type"] == "init":
+                 MY_CARDS = player_cards[MY_ID][0]
+                 print(f"\nRodada: {ROUND}")
+                 print(f"Manilha: {SHACKLE}")
+                 print(f"Configuração da partida: {CARDS}")
+                 print(f"Suas cartas: {MY_CARDS}.")
+                 msg = {
+                    "type": "take_guesses",
+                    "broadcast": True,
+                    "from_player": MY_ID,
+                    "to_player": destination, 
+                    "data": [0, 0, 0, 0],
+                    "acks": [0, 0, 0, 0]
+                }
+             elif message["type"] == "take_guesses":
                  global GUESSES, PLAYERS_HPS
                  GUESSES = message["data"]
                  sum_guesses = 0
@@ -377,7 +418,7 @@ def dealer(sock, message):
                     "data": GUESSES,
                     "acks": [0, 0, 0, 0]
                  }
-                 MY_LIST.append(msg)
+                 #MY_LIST.append(msg)
              elif message["type"] == "informing_guesses":
                  print_guesses(message["data"])
                  msg = {
@@ -388,7 +429,7 @@ def dealer(sock, message):
                     "data": [],
                     "acks": [0, 0, 0, 0]
                  }
-                 MY_LIST.append(msg)
+                 #MY_LIST.append(msg)
              elif message["type"] == "make_move":
                  global MOVES
                  MOVES = message["data"]
@@ -403,7 +444,7 @@ def dealer(sock, message):
                     "data": MOVES,
                     "acks": [0, 0, 0, 0]
                  }
-                 MY_LIST.append(msg)
+                 #MY_LIST.append(msg)
              elif message["type"] == "informing_moves":
                  print_moves(message["data"])
                  # Inicializa a lista round_info com três elementos (jogador da rodada, jogadores eliminados, HP dos jogadores)
@@ -426,7 +467,7 @@ def dealer(sock, message):
                     "data": round_info,
                     "acks": [0, 0, 0, 0]
                  }
-                 MY_LIST.append(msg)
+                 #MY_LIST.append(msg)
              elif message["type"] == "round_info":
                  print_round_info(message["data"])
                  if len(MY_CARDS) == 0:
@@ -441,7 +482,7 @@ def dealer(sock, message):
                         "data": players_alive,
                         "acks": [0, 0, 0, 0]
                      }
-                     MY_LIST.append(msg)
+                     #MY_LIST.append(msg)
                  else:
                      if len(MY_CARDS) > 0:
                          msg = {
@@ -452,7 +493,7 @@ def dealer(sock, message):
                             "data": [],
                             "acks": [0, 0, 0, 0]
                          }
-                         MY_LIST.append(msg)
+                         #MY_LIST.append(msg)
                      else:
                          msg = {
                             "type": "reset_vars",
@@ -462,28 +503,29 @@ def dealer(sock, message):
                             "data": [],
                             "acks": [0, 0, 0, 0]
                          }
-                         MY_LIST.append(msg)
+                         #MY_LIST.append(msg)
              elif message["type"] == "reset_vars":
-                 dealer_info = [ROUND, PLAYERS_HPS]
                  reset_vars()
-                 IS_DEALER = False
+                 dealer_info = [ROUND, PLAYERS_HPS]
                  msg = {
                     "type": "dealer_token",
                     "broadcast": False,
                     "from_player": MY_ID,
                     "to_player": NEXT_ID, 
                     "data": dealer_info,
+                    "acks": [0]
                  }
-                 MY_LIST.append(msg)
+                 #MY_LIST.append(msg)
                  print(f"Você não é mais o carteador.")
+             elif message["type"] == "dealer_token":
+                 IS_DEALER = False
              elif message["type"] == "end_game":
                 print(f"O último jogador que se manteve de pé foi o Jogador {message['data']}")
                 global PLAYING
                 PLAYING = False
                 return
-
-     if len(MY_LIST) > 0:
-         msg = MY_LIST.pop(0)
+    
+     if IS_DEALER:
          send_message(sock, msg)
      else:
          normal_player(sock, message)
@@ -497,9 +539,12 @@ def normal_player(sock, message):
             message["acks"][MY_ID] = -1
         else:
             message["acks"][MY_ID] = 1
-        if message["type"] == "init":                   # Setando as variaveis do player no inicio da rodada
-            global DEALER_ID, SHACKLE, MY_CARDS, ROUND
+        if message["type"] == "informing_dealer":
             DEALER_ID = message["from_player"]
+            print_dealer(message)
+            send_message(sock, message)
+        elif message["type"] == "init":                   # Setando as variaveis do player no inicio da rodada
+            global DEALER_ID, SHACKLE, MY_CARDS, ROUND
             aux = message['data'][MY_ID]
             MY_CARDS = aux[0]
             SHACKLE = aux[1]
@@ -540,12 +585,14 @@ def normal_player(sock, message):
             send_message(sock, message)
     elif message["broadcast"] == False and message["to_player"] == MY_ID:
         if message["type"] == "dealer_token":
-            global IS_DEALER
-            IS_DEALER = True
+            global ROUND, PLAYERS_HPS
             ROUND = message["data"][0]
             PLAYERS_HPS = message["data"][1]
+            message["acks"][0] = 1
+            send_message(sock, message)
             init_round(sock)
             receive_message(sock)
+            return
     else:
         send_message(sock, message)
 
