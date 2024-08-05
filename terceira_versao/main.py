@@ -18,7 +18,7 @@ COUNT_WINS = [0, 0, 0, 0]
 GUESSES = [None, None, None, None]
 MOVES = [0, 0, 0, 0]
 PLAYERS_HPS = [7, 7, 7, 7]
-PLAYERS_IPS = ["10.254.223.39", "10.254.223.40", "10.254.223.41", "10.254.223.38"]
+PLAYERS_IPS = ["10.254.224.62", "10.254.224.64", "10.254.224.67", "10.254.224.68"]
 PLAYERS_PORTS = [5039, 5040, 5041, 5042]
 MY_ID = 0
 MY_IP = 0
@@ -29,7 +29,7 @@ NEXT_PORT = 0
 
 # Função de inicialização do jogo
 def init_round(sock):
-    global MY_LIST, IS_DEALER, ROUND, TABLE_CARD, MY_CARDS, SUB_ROUND
+    global IS_DEALER, ROUND, SUB_ROUND
 
     #print("Você é o carteador da rodada!")
 
@@ -321,7 +321,7 @@ def reset_vars():
     return 
     
 def finish_round():
-    global COUNT_WINS
+    global PLAYERS_HPS
     
     # Subtrai elemento por elemento
     final_points = [guess - win for guess, win in zip(GUESSES, COUNT_WINS)]
@@ -389,6 +389,7 @@ def dealer(sock, message):
                     "acks": [0, 0, 0, 0]
                  }
              elif message["type"] == "init":
+                 global MY_CARDS
                  MY_CARDS = player_cards[MY_ID][0]
                  print(f"\nRodada: {ROUND}")
                  print(f"Manilha: {SHACKLE}")
@@ -403,7 +404,7 @@ def dealer(sock, message):
                     "acks": [0, 0, 0, 0]
                 }
              elif message["type"] == "take_guesses":
-                 global GUESSES, PLAYERS_HPS
+                 global GUESSES
                  GUESSES = message["data"]
                  sum_guesses = 0
                  for guess in message["data"]:
@@ -518,6 +519,7 @@ def dealer(sock, message):
                  #MY_LIST.append(msg)
                  print(f"Você não é mais o carteador.")
              elif message["type"] == "dealer_token":
+                 global IS_DEALER
                  IS_DEALER = False
              elif message["type"] == "end_game":
                 print(f"O último jogador que se manteve de pé foi o Jogador {message['data']}")
@@ -532,7 +534,7 @@ def dealer(sock, message):
 
 # Função para processar as mensagens do jogador padrão
 def normal_player(sock, message):
-    global PLAYERS_HPS, MY_ID, ROUND
+    global PLAYERS_HPS, MY_ID
     # Recebeu uma mensagem destinada a ele
     if message["broadcast"] == True and MY_ID in message["to_player"]:
         if PLAYERS_HPS[MY_ID] <= 0:
@@ -540,11 +542,12 @@ def normal_player(sock, message):
         else:
             message["acks"][MY_ID] = 1
         if message["type"] == "informing_dealer":
+            global DEALER_ID
             DEALER_ID = message["from_player"]
             print_dealer(message)
             send_message(sock, message)
         elif message["type"] == "init":                   # Setando as variaveis do player no inicio da rodada
-            global DEALER_ID, SHACKLE, MY_CARDS, ROUND
+            global SHACKLE, MY_CARDS, ROUND
             aux = message['data'][MY_ID]
             MY_CARDS = aux[0]
             SHACKLE = aux[1]
