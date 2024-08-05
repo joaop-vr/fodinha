@@ -92,7 +92,7 @@ def init_round(sock):
 
 # Função para distribuir cartas
 def distribute_cards():
-    global ROUND, SHUFFLED_CARDS
+    global ROUND, SHUFFLED_CARDS, SHACKLE, CARDS
     
     suits = ['C', 'O', 'E', 'P']  # Copas, Ouros, Espadas, Paus
     values = ['4', '5', '6', '7', 'Q', 'J', 'K', 'A', '2', '3']
@@ -107,7 +107,6 @@ def distribute_cards():
 
 
     # Sorteando a manilha (SHACKLE)
-    global SHACKLE
     aux_card = cards.pop()[0]
   
     try:
@@ -121,7 +120,6 @@ def distribute_cards():
         print(f"A Manilha {SHACKLE} não foi encontrada na lista.")
 
     # Configuração do poder das cartas
-    global CARDS
     CARDS = values[:]
     CARDS.append(SHACKLE)  # Coloca a Manilha no extremo direito do "values" de cartas
     
@@ -258,7 +256,7 @@ def make_move():
     return (MY_ID, response)
 
 def count_points():
-    global SHACKLE, MOVES
+    global SHACKLE, MOVES, COUNT_WINS
     
     suits = ['O', 'E', 'C', 'P']
     index_players = []
@@ -305,7 +303,6 @@ def count_points():
     else:
         max_value = max(final_points)
         index_winner = final_points.index(max_value)
-        global COUNT_WINS
         COUNT_WINS[index_winner] += 1
         return index_winner
 
@@ -330,7 +327,6 @@ def finish_round():
     final_points = [-point if point > 0 else point for point in final_points]
 
     # Contabiliza quais foram os jogadores que 'morreram' nessa rodada
-    global PLAYERS_HPS
     old_players_hp = PLAYERS_HPS[:]
     new_dead_players = []
     for i in range(len(PLAYERS_HPS)):
@@ -347,6 +343,7 @@ def finish_round():
 
 # Função para processar as mensagens do dealer
 def dealer(sock, message):
+     global MY_CARDS, GUESSES, MOVES, IS_DEALER, PLAYING
      # A mensagem do dealer deu a volta na rede e chegou nele
      if message["from_player"] == MY_ID:
 
@@ -389,7 +386,6 @@ def dealer(sock, message):
                     "acks": [0, 0, 0, 0]
                  }
              elif message["type"] == "init":
-                 global MY_CARDS
                  MY_CARDS = player_cards[MY_ID][0]
                  print(f"\nRodada: {ROUND}")
                  print(f"Manilha: {SHACKLE}")
@@ -404,7 +400,6 @@ def dealer(sock, message):
                     "acks": [0, 0, 0, 0]
                 }
              elif message["type"] == "take_guesses":
-                 global GUESSES
                  GUESSES = message["data"]
                  sum_guesses = 0
                  for guess in message["data"]:
@@ -432,7 +427,6 @@ def dealer(sock, message):
                  }
                  #MY_LIST.append(msg)
              elif message["type"] == "make_move":
-                 global MOVES
                  MOVES = message["data"]
                  print_previous_moves(message["data"])
                  move = make_move()
@@ -519,11 +513,9 @@ def dealer(sock, message):
                  #MY_LIST.append(msg)
                  print(f"Você não é mais o carteador.")
              elif message["type"] == "dealer_token":
-                 global IS_DEALER
                  IS_DEALER = False
              elif message["type"] == "end_game":
                 print(f"O último jogador que se manteve de pé foi o Jogador {message['data']}")
-                global PLAYING
                 PLAYING = False
                 return
     
@@ -534,7 +526,7 @@ def dealer(sock, message):
 
 # Função para processar as mensagens do jogador padrão
 def normal_player(sock, message):
-    global PLAYERS_HPS, MY_ID
+    global PLAYERS_HPS, MY_ID, DEALER_ID, SHACKLE, MY_CARDS, ROUND, PLAYING, ROUND
     # Recebeu uma mensagem destinada a ele
     if message["broadcast"] == True and MY_ID in message["to_player"]:
         if PLAYERS_HPS[MY_ID] <= 0:
@@ -542,12 +534,10 @@ def normal_player(sock, message):
         else:
             message["acks"][MY_ID] = 1
         if message["type"] == "informing_dealer":
-            global DEALER_ID
             DEALER_ID = message["from_player"]
             print_dealer(message)
             send_message(sock, message)
         elif message["type"] == "init":                   # Setando as variaveis do player no inicio da rodada
-            global SHACKLE, MY_CARDS, ROUND
             aux = message['data'][MY_ID]
             MY_CARDS = aux[0]
             SHACKLE = aux[1]
@@ -583,12 +573,10 @@ def normal_player(sock, message):
             send_message(sock, message)
         elif message["type"] == "end_game":
             print(f"\nO último jogador que se manteve de pé foi o Jogador {message['data']}")
-            global PLAYING
             PLAYING = False
             send_message(sock, message)
     elif message["broadcast"] == False and message["to_player"] == MY_ID:
         if message["type"] == "dealer_token":
-            global ROUND, PLAYERS_HPS
             ROUND = message["data"][0]
             PLAYERS_HPS = message["data"][1]
             message["acks"][0] = 1
