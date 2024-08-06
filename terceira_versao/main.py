@@ -51,7 +51,7 @@ def init_round(sock):
         "broadcast": True,
         "from_player": MY_ID,
         "to_player": destination,  
-        "data": player_cards,
+            "data": [],
         "acks": [0, 0, 0, 0]
     }
     #MY_LIST.append(msg)
@@ -133,12 +133,14 @@ def distribute_cards():
     return output
 
 def print_previous_guesses(guesses):
+    print(f"[DEBUG] previous guesses: {guesses}")
     print(f"Palpites anteriores:")
     for i in range(len(guesses)):
         print(f"Palpite do Jogador {i+1}: {guesses[i]}") 
     return
 
 def print_guesses(guesses):
+    print(f"[DEBUG] guesses: {guesses}")
     print(f"\nPalpites:")
     for i in range(len(guesses)):
         if guesses[i] != -1:
@@ -148,6 +150,7 @@ def print_guesses(guesses):
     return 
 
 def print_previous_moves(moves):
+    print(f"[DEBUG] previous moves: {moves}")
     first_move = True
     for move in moves:
         if move != 0:
@@ -165,6 +168,7 @@ def print_previous_moves(moves):
     return
 
 def print_moves(moves):
+    print(f"[DEBUG] moves: {moves}")
     print(f"\n")
     for move in moves:
         if move[0] != -1:
@@ -183,7 +187,8 @@ def print_round_info(message):
         print("Ganhador: não houve ganhador nessa sub-rodada!")
 
     if len(message[1]) > 0:
-        print(f"Jogadores eliminados: {message[1]}")
+        dead_players = [player + 1 for player in message[1]]
+        print(f"Jogadores eliminados: {dead_players}")
     return
 
 def print_dealer(message):
@@ -225,7 +230,7 @@ def take_guess(count_guesses=0):
             guess = int(input("Dê outro palpite: "))
 
         # Verifica se a soma dos palpites é igual ao número de rodadas
-        if count_guesses != 0 and ROUND >= 2:
+        if count_guesses != 0:
             while count_guesses + guess == ROUND:
                 print(f"A soma dos palpites deve ser diferente de {ROUND}.")
                 guess = int(input("Dê outro palpite: "))
@@ -343,8 +348,10 @@ def finish_round():
 
 # Função para processar as mensagens do dealer
 def dealer(sock, message):
-     global MY_CARDS, GUESSES, MOVES, IS_DEALER, PLAYING
+     global MY_CARDS, GUESSES, MOVES, IS_DEALER, PLAYING, ROUND, SUB_ROUND
+     #print(f"[DEBUG] menswagem  recebida: {message}")
      # A mensagem do dealer deu a volta na rede e chegou nele
+     msg = {}
      if message["from_player"] == MY_ID:
 
          # Verifica se todos responderam ACK
@@ -386,11 +393,14 @@ def dealer(sock, message):
                     "acks": [0, 0, 0, 0]
                  }
              elif message["type"] == "init":
-                 MY_CARDS = player_cards[MY_ID][0]
-                 print(f"\nRodada: {ROUND}")
-                 print(f"Manilha: {SHACKLE}")
-                 print(f"Configuração da partida: {CARDS}")
-                 print(f"Suas cartas: {MY_CARDS}.")
+                 if PLAYERS_HPS[MY_ID] > 0:
+                    MY_CARDS = message["data"][MY_ID][0]
+                    print(f"\nRodada: {ROUND}")
+                    print(f"Manilha: {SHACKLE}")
+                    print(f"Configuração da partida: {CARDS}")
+                    print(f"Suas cartas: {MY_CARDS}.")
+                 else:
+                     print(f"Você ficou sem vidas.. está como dealer espectador.")
                  msg = {
                     "type": "take_guesses",
                     "broadcast": True,
@@ -403,7 +413,8 @@ def dealer(sock, message):
                  GUESSES = message["data"]
                  sum_guesses = 0
                  for guess in message["data"]:
-                    sum_guesses += guess
+                     if guess != -1:
+                         sum_guesses += guess
                  guess = take_guess(sum_guesses)
                  GUESSES[MY_ID] = guess
                  msg = {
@@ -449,7 +460,7 @@ def dealer(sock, message):
                  round_info[0] = index_winner  # Armazena o índice do vencedor
 
                  # Adiciona as informações dos jogadores que morreram e HP dos players
-                 if len(MY_CARDS) == 0 or SUB_ROUND == ROUND:
+                 if SUB_ROUND == ROUND:
                      aux = finish_round()
                      round_info[1] = aux[0]  # Lista de jogadores que morreram
                      round_info[2] = aux[1]  # Lista de HPs dos jogadores
@@ -465,7 +476,7 @@ def dealer(sock, message):
                  #MY_LIST.append(msg)
              elif message["type"] == "round_info":
                  print_round_info(message["data"])
-                 if len(MY_CARDS) == 0:
+                 if SUB_ROUND == ROUND:
                     update_HP(message)
                  players_alive = check_players_alive()
                  if len(players_alive) <= 1:
@@ -479,7 +490,7 @@ def dealer(sock, message):
                      }
                      #MY_LIST.append(msg)
                  else:
-                     if len(MY_CARDS) > 0:
+                     if SUB_ROUND != ROUND:
                          msg = {
                             "type": "make_move",
                             "broadcast": True,
@@ -513,19 +524,24 @@ def dealer(sock, message):
                  #MY_LIST.append(msg)
                  print(f"Você não é mais o carteador.")
              elif message["type"] == "dealer_token":
+                 #print(f"[DEBUG] Vc está deixando de ser o dealer! buhu")
                  IS_DEALER = False
              elif message["type"] == "end_game":
-                print(f"O último jogador que se manteve de pé foi o Jogador {message['data']}")
+                print(f"\nO último jogador que se manteve de pé foi o Jogador {message['data'][0] + 1}")
                 PLAYING = False
                 return
     
      if IS_DEALER:
+         print(f"[DEBUG] Está enviando a seguinte mensagem: {msg}")
          send_message(sock, msg)
      else:
-         normal_player(sock, message)
+         #print(f"[DEBUG] vai começar a rotina de normal player")
+         #normal_player(sock, message)
+         receive_message(sock)
 
 # Função para processar as mensagens do jogador padrão
 def normal_player(sock, message):
+    #print(f"[DEBUG] mensagem recebida: {message}")
     global PLAYERS_HPS, MY_ID, DEALER_ID, SHACKLE, MY_CARDS, ROUND, PLAYING, ROUND
     # Recebeu uma mensagem destinada a ele
     if message["broadcast"] == True and MY_ID in message["to_player"]:
@@ -536,7 +552,7 @@ def normal_player(sock, message):
         if message["type"] == "informing_dealer":
             DEALER_ID = message["from_player"]
             print_dealer(message)
-            send_message(sock, message)
+            #send_message(sock, message)
         elif message["type"] == "init":                   # Setando as variaveis do player no inicio da rodada
             aux = message['data'][MY_ID]
             MY_CARDS = aux[0]
@@ -547,41 +563,46 @@ def normal_player(sock, message):
             print(f"Manilha: {SHACKLE}")
             print(f"Configuração da partida: {CARDS}")
             print(f"Suas cartas: {MY_CARDS}.")
-            send_message(sock, message)
+            #send_message(sock, message)
         elif message["type"] == "take_guesses":         # Faz o palpite
             guess = take_guess()
             message["data"][MY_ID] = guess
-            send_message(sock, message)
+            #send_message(sock, message)
         elif message["type"] == "informing_guesses":    # Recebe e imprime os palpites de todos
             print_guesses(message["data"])
-            send_message(sock, message)
+            #send_message(sock, message)
         elif message["type"] == "make_move":            # Faz a jogada
             print_previous_moves(message["data"])
             move = make_move()
             message["data"].append(move)
-            send_message(sock, message)
+            #send_message(sock, message)
         elif message["type"] == "informing_moves":      # Recebe e imprime as jogadas de todos
             print_moves(message["data"])
-            send_message(sock, message)
+            #send_message(sock, message)
         elif message["type"] == "round_info":           # Imprime as informações da rodada que terminou e atualiza HP
             print_round_info(message["data"])
             if len(MY_CARDS) == 0:
                 update_HP(message)
-            send_message(sock, message)
+            #send_message(sock, message)
         elif message["type"] == "reset_vars":           # Reinicia as variaveis globais para poder iniciar uma nova rodada
             reset_vars()
-            send_message(sock, message)
+            #send_message(sock, message)
         elif message["type"] == "end_game":
-            print(f"\nO último jogador que se manteve de pé foi o Jogador {message['data']}")
+            print(f"\nO último jogador que se manteve de pé foi o Jogador {message['data'][0] + 1}")
             PLAYING = False
-            send_message(sock, message)
+        print(f"[DEBUG] estou passando/enviando a seguinte mensagem: {message}")
+        send_message(sock, message)
     elif message["broadcast"] == False and message["to_player"] == MY_ID:
         if message["type"] == "dealer_token":
+            #print(f"[DEBUG] Voce receber o bastao de dealer! eba")
             ROUND = message["data"][0]
             PLAYERS_HPS = message["data"][1]
             message["acks"][0] = 1
+            #print(f"[DEBUG] vai passar a mensagem: {message}")
             send_message(sock, message)
+            #print(f"[DEBUG] vai entrar em init_round")
             init_round(sock)
+            #print(f"[DEBUG] vai começar a ouvir mensagens como dealer")
             receive_message(sock)
             return
     else:
