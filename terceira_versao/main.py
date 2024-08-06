@@ -100,14 +100,12 @@ def distribute_cards():
     return output
 
 def print_previous_guesses(guesses):
-    #print(f"[DEBUG] previous guesses: {guesses}")
     print(f"Palpites anteriores:")
     for i in range(len(guesses)):
         print(f"Palpite do Jogador {i+1}: {guesses[i]}") 
     return
 
 def print_guesses(guesses):
-    #print(f"[DEBUG] guesses: {guesses}")
     print(f"\nPalpites:")
     for i in range(len(guesses)):
         if guesses[i] != -1:
@@ -117,7 +115,6 @@ def print_guesses(guesses):
     return 
 
 def print_previous_moves(moves):
-    #print(f"[DEBUG] previous moves: {moves}")
     first_move = True
     for move in moves:
         if move != 0:
@@ -135,7 +132,6 @@ def print_previous_moves(moves):
     return
 
 def print_moves(moves):
-    print(f"[DEBUG] moves: {moves}")
     print(f"\n")
     for move in moves:
         if move[0] != -1:
@@ -197,7 +193,6 @@ def take_guess(count_guesses=-12):
             guess = int(input("Dê outro palpite: "))
 
         # Verifica se a soma dos palpites é igual ao número de rodadas
-        #print(f"[DEBUG] soma dos palpites sem contar o dealer: {count_guesses}")
         if count_guesses != -12:
             while count_guesses + guess == ROUND:
                 print(f"A soma dos palpites deve ser diferente de {ROUND}.")
@@ -317,7 +312,6 @@ def finish_round():
 # Função para processar as mensagens do dealer
 def dealer(sock, message):
      global MY_CARDS, GUESSES, MOVES, IS_DEALER, PLAYING, ROUND, SUB_ROUND
-     #print(f"[DEBUG] menswagem  recebida: {message}")
      # A mensagem do dealer deu a volta na rede e chegou nele
      msg = {}
      if message["from_player"] == MY_ID:
@@ -385,7 +379,6 @@ def dealer(sock, message):
                  for guess in message["data"]:
                      if guess != -1:
                          sum_guesses += guess
-                 #print(f"[DEBUG] antes da chamada take_guess => sum_guesses{sum_guesses}")
                  guess = take_guess(sum_guesses)
                  GUESSES[MY_ID] = guess
                  msg = {
@@ -497,10 +490,8 @@ def dealer(sock, message):
                  return
     
      if IS_DEALER:
-         #print(f"[DEBUG] Está enviando a seguinte mensagem: {msg}")
          send_message(sock, msg)
      else:
-         #print(f"[DEBUG] vai começar a rotina de normal player")
          receive_message(sock)
 
 # Função para processar as mensagens do jogador padrão
@@ -552,7 +543,6 @@ def normal_player(sock, message):
             else:
                 print(f"\nHouve empate! A verdadeira vitória são os amigos que fizemos no caminho...")
             PLAYING = False
-        #print(f"[DEBUG] estou passando/enviando a seguinte mensagem: {message}")
         send_message(sock, message)
     elif message["broadcast"] == False and message["to_player"] == MY_ID:
         if message["type"] == "dealer_token":
