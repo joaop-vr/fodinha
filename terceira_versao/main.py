@@ -363,6 +363,7 @@ def dealer(sock, message):
                  }
              elif message["type"] == "init":
                  if PLAYERS_HPS[MY_ID] > 0:
+                    print(f"SUB_ROUND: {SUB_ROUND} | ROUND: {ROUND} MY_HP: {PLAYERS_HPS[MY_ID]}")
                     MY_CARDS = message["data"][MY_ID][0]
                     print(f"\nRodada: {ROUND}")
                     print(f"Manilha: {SHACKLE}")
@@ -521,10 +522,13 @@ def normal_player(sock, message):
             SHACKLE = aux[1]
             CARDS = aux[2]
             ROUND = len(MY_CARDS)
-            print(f"\nRodada: {ROUND}")
-            print(f"Manilha: {SHACKLE}")
-            print(f"Configuração da partida: {CARDS}")
-            print(f"Suas cartas: {MY_CARDS}.")
+            if PLAYERS_HPS[MY_ID] > 0:
+                print(f"\nRodada: {ROUND}")
+                print(f"Manilha: {SHACKLE}")
+                print(f"Configuração da partida: {CARDS}")
+                print(f"Suas cartas: {MY_CARDS}.")
+            else:
+                print(f"Você ficou sem vidas.. está como dealer espectador.")
         elif message["type"] == "take_guesses":         # Faz o palpite
             guess = take_guess()
             message["data"][MY_ID] = guess
