@@ -18,7 +18,8 @@ COUNT_WINS = [0, 0, 0, 0]
 GUESSES = [None, None, None, None]
 MOVES = [0, 0, 0, 0]
 PLAYERS_HPS = [7, 7, 7, 7]
-PLAYERS_IPS = ["10.254.224.62", "10.254.224.64", "10.254.224.67", "10.254.224.68"]
+#h29 h30 h31 h32
+PLAYERS_IPS = ["10.254.223.57", "10.254.223.58", "10.254.223.59", "10.254.223.60"]
 PLAYERS_PORTS = [5039, 5040, 5041, 5042]
 MY_ID = 0
 MY_IP = 0
@@ -99,14 +100,14 @@ def distribute_cards():
     return output
 
 def print_previous_guesses(guesses):
-    print(f"[DEBUG] previous guesses: {guesses}")
+    #print(f"[DEBUG] previous guesses: {guesses}")
     print(f"Palpites anteriores:")
     for i in range(len(guesses)):
         print(f"Palpite do Jogador {i+1}: {guesses[i]}") 
     return
 
 def print_guesses(guesses):
-    print(f"[DEBUG] guesses: {guesses}")
+    #print(f"[DEBUG] guesses: {guesses}")
     print(f"\nPalpites:")
     for i in range(len(guesses)):
         if guesses[i] != -1:
@@ -116,7 +117,7 @@ def print_guesses(guesses):
     return 
 
 def print_previous_moves(moves):
-    print(f"[DEBUG] previous moves: {moves}")
+    #print(f"[DEBUG] previous moves: {moves}")
     first_move = True
     for move in moves:
         if move != 0:
@@ -177,7 +178,7 @@ def check_players_alive():
     return players_alive
 
 # Função para o usuário informar o palpite
-def take_guess(count_guesses=0):
+def take_guess(count_guesses=-12):
     global PLAYERS_HPS, MY_ID
     guess = 0
     if PLAYERS_HPS[MY_ID] > 0:
@@ -196,7 +197,8 @@ def take_guess(count_guesses=0):
             guess = int(input("Dê outro palpite: "))
 
         # Verifica se a soma dos palpites é igual ao número de rodadas
-        if count_guesses != 0:
+        #print(f"[DEBUG] soma dos palpites sem contar o dealer: {count_guesses}")
+        if count_guesses != -12:
             while count_guesses + guess == ROUND:
                 print(f"A soma dos palpites deve ser diferente de {ROUND}.")
                 guess = int(input("Dê outro palpite: "))
@@ -349,6 +351,7 @@ def dealer(sock, message):
              msg = {}
              if message["type"] == "informing_dealer":
                  # Distribui as cartas para os jogadores e armazena em 'player_cards'
+                 print("Você é o carteador desta rodada!")
                  player_cards = distribute_cards()
                  msg = {
                     "type": "init",
@@ -381,6 +384,7 @@ def dealer(sock, message):
                  for guess in message["data"]:
                      if guess != -1:
                          sum_guesses += guess
+                 #print(f"[DEBUG] antes da chamada take_guess => sum_guesses{sum_guesses}")
                  guess = take_guess(sum_guesses)
                  GUESSES[MY_ID] = guess
                  msg = {
@@ -484,15 +488,18 @@ def dealer(sock, message):
              elif message["type"] == "dealer_token":
                  IS_DEALER = False
              elif message["type"] == "end_game":
-                print(f"\nO último jogador que se manteve de pé foi o Jogador {message['data'][0] + 1}")
-                PLAYING = False
-                return
+                 if len(message["data"]) != 0:
+                    print(f"\nO último jogador que se manteve de pé foi o Jogador {message['data'][0] + 1}")
+                 else:
+                    print(f"\nHouve empate! A verdadeira vitória são os amigos que fizemos no caminho...")
+                 PLAYING = False
+                 return
     
      if IS_DEALER:
-         print(f"[DEBUG] Está enviando a seguinte mensagem: {msg}")
+         #print(f"[DEBUG] Está enviando a seguinte mensagem: {msg}")
          send_message(sock, msg)
      else:
-         print(f"[DEBUG] vai começar a rotina de normal player")
+         #print(f"[DEBUG] vai começar a rotina de normal player")
          receive_message(sock)
 
 # Função para processar as mensagens do jogador padrão
@@ -536,9 +543,12 @@ def normal_player(sock, message):
         elif message["type"] == "reset_vars":           # Reinicia as variaveis globais para poder iniciar uma nova rodada
             reset_vars()
         elif message["type"] == "end_game":
-            print(f"\nO último jogador que se manteve de pé foi o Jogador {message['data'][0] + 1}")
+            if len(message["data"]) != 0:
+                print(f"\nO último jogador que se manteve de pé foi o Jogador {message['data'][0] + 1}")
+            else:
+                print(f"\nHouve empate! A verdadeira vitória são os amigos que fizemos no caminho...")
             PLAYING = False
-        print(f"[DEBUG] estou passando/enviando a seguinte mensagem: {message}")
+        #print(f"[DEBUG] estou passando/enviando a seguinte mensagem: {message}")
         send_message(sock, message)
     elif message["broadcast"] == False and message["to_player"] == MY_ID:
         if message["type"] == "dealer_token":
