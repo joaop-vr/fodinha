@@ -1,69 +1,48 @@
-# Multiplayer Card Game
+# Jogo de Cartas Distribuído
 
-Este projeto implementa um jogo de cartas multiplayer distribuído, onde cada jogador é representado por um script Python específico. Os arquivos incluídos são:
+Este é um jogo de cartas distribuído implementado em Python, utilizando sockets para comunicação entre os jogadores. O jogo possui mecânicas de distribuição de cartas, realização de palpites e jogadas, além de contagem de pontos e administração de vidas dos jogadores.
 
-1. `1jogador.py`
-2. `2jogador.py`
-3. `3jogador.py`
-4. `carteador.py`
+## Configurações da Rede
 
-## Descrição dos Arquivos
+O jogo é configurado para rodar na rede local do Dinf com quatro jogadores. Cada jogador deve ter um IP e uma porta específicos:
 
-### 1. `carteador.py`
-Este script representa o carteador, responsável por distribuir as cartas e iniciar o jogo.
-
-- **Configurações de Rede**: Define as configurações de rede para o carteador [IP:10.254.223.39, máquina: h11].
-- **Funções de Rede**: Criação de socket UDP, envio e recepção de mensagens.
-- **Distribuição de Cartas**: Lógica para distribuir as cartas para os jogadores.
-- **Início do Jogo**: Envia mensagens de inicialização para todos os jogadores.
-
-### 2. `1jogador.py`
-Este script representa o primeiro jogador no jogo de cartas. As principais funções e funcionalidades incluem:
-
-- **Configurações de Rede**: Define o IP e a porta para comunicação com os outros jogadores [IP:10.254.223.40, máquina: h12].
-- **Funções de Rede**: Cria socket UDP, envia e recebe mensagens.
-- **Processamento de Mensagens**: Processa diferentes tipos de mensagens, como inicialização, tomada de palpites e informações de palpites.
-- **Jogadas**: Lógica para fazer jogadas e passar a vez para o próximo jogador.
-
-### 3. `2jogador.py`
-Este script representa o segundo jogador no jogo de cartas. As funcionalidades são similares às do `1jogador.py`, mas adaptadas para o segundo jogador.
-
-- **Configurações de Rede**: Define o IP e a porta para o segundo jogador [IP:10.254.223.41, máquina: h13].
-- **Funções de Rede**: Criação de socket UDP, envio e recepção de mensagens.
-- **Processamento de Mensagens**: Tratamento de mensagens de inicialização, palpites e jogadas.
-- **Jogadas**: Implementa a lógica de jogadas para o segundo jogador.
-
-### 4. `3jogador.py`
-Este script representa o terceiro jogador no jogo de cartas, com funcionalidades semelhantes às dos outros scripts de jogador.
-
-- **Configurações de Rede**: Define o IP e a porta para o terceiro jogador [IP:10.254.223.42, máquina: h14].
-- **Funções de Rede**: Criação de socket UDP, envio e recepção de mensagens.
-- **Processamento de Mensagens**: Tratamento de mensagens de inicialização, palpites e jogadas.
-- **Jogadas**: Implementa a lógica de jogadas para o terceiro jogador.
+```python
+PLAYERS_IPS = ["10.254.223.57", "10.254.223.58", "10.254.223.59", "10.254.223.60"]
+PLAYERS_PORTS = [5039, 5040, 5041, 5042]
+````
 
 ## Como Executar
 
-### Passo 1: Configurar o Ambiente
-
-Certifique-se de que todas as máquinas envolvidas no jogo tenham o Python instalado e estejam na mesma rede.
-
-### Passo 2: Executar os Scripts
-
-1. Inicie o carteador primeiro com o parãmetro "start":
-   ```bash
-   python carteador.py start
-
-2. Em seguida, inicie cada jogador em suas respectivas máquinas:
-   ```bash
-   python 1jogador.py
-   ```
-   ```bash
-   python 2jogador.py
+1. Configure os IPs e portas dos jogadores na seção de configurações da rede.
+2. Execute o script em cada máquina/jogador.
+3. O comando deve ser:
+   ```python
+   python3 main.py <numero_jogador> "start"
    ````
-   ```bash
-   python 3jogador.py
+   Obs.: os números dos jogadores são de 1 a 4; "start" indica que o jogador em questão será o carteador inicial; só pode haver um carteador inicial no jogo.
+5. O carteador deve ser o último a ser conectado na rede.
+6. O jogo iniciará automaticamente, distribuindo as cartas e esperando as ações de cada jogador.
+## Variáveis Globais
 
-## Observações
+O jogo utiliza diversas variáveis globais para armazenar o estado do jogo, incluindo cartas distribuídas, vidas dos jogadores, e informações sobre rodadas e sub-rodadas:
 
-+ Certifique-se de ajustar os endereços IP e as portas nos scripts para refletir a configuração da sua rede.
-+ Os scripts usam comunicação via UDP, então certifique-se de que os firewalls e outras configurações de rede permitam o tráfego UDP nas portas especificadas.
+```python
+PLAYING = True
+SHACKLE = 0
+ROUND = 0
+SUB_ROUND = 0
+IS_DEALER = False
+DEALER_ID = 0
+SHUFFLED_CARDS = []
+CARDS = []
+MY_LIST = []
+MY_CARDS = []
+COUNT_WINS = [0, 0, 0, 0]
+GUESSES = [None, None, None, None]
+MOVES = [0, 0, 0, 0]
+PLAYERS_HPS = [7, 7, 7, 7]
+````
+
+
+
+
