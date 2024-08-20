@@ -1,6 +1,6 @@
-# Jogo de Cartas Distribuído
+# Jogo de Cartas Distribuído (Fodinha)
 
-Este é um jogo de cartas distribuído implementado em Python, utilizando sockets para comunicação entre os jogadores. O jogo possui mecânicas de distribuição de cartas, realização de palpites e jogadas, além de contagem de pontos e administração de vidas dos jogadores.
+Este repositório contém um projeto desenvolvido durante a disciplina de Redes de Computadores I. O trabalho consiste na implementação de um jogo de cartas conhecido popularmente como 'Fodinha', utilizando Python e sockets para a comunicação entre os jogadores. O jogo é distribuído e inclui funcionalidades como distribuição de cartas, realização de palpites e jogadas, contagem de pontos, e gestão das vidas dos jogadores.
 
 ## Configurações da Rede
 
