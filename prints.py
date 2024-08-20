@@ -1,4 +1,5 @@
 # Arquivo com as funções que imprimem informações ao longo do jogo
+import global_vars
 
 def print_previous_guesses(guesses):
     print(f"Palpites anteriores:")
