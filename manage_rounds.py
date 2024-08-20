@@ -1,3 +1,6 @@
+import global_vars
+from main import *
+
 # Função de inicialização do jogo
 def init_round(sock):
     #global IS_DEALER, ROUND, SUB_ROUND
@@ -72,7 +75,7 @@ def distribute_cards():
 # Atualiza as suas vidas
 def update_HP(message):
     #global PLAYERS_HPS, MY_ID
-    global_vars.PLAYERS_HPS[global_vars.MY_ID] = message["data"][2]global_vars.[global_vars.MY_ID]
+    global_vars.PLAYERS_HPS[global_vars.MY_ID] = message["data"][2][global_vars.MY_ID]
     print(f"HP: {global_vars.PLAYERS_HPS[global_vars.MY_ID]}")
     return
 

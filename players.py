@@ -1,3 +1,7 @@
+import global_vars
+from prints import *
+from main import *
+
 # Função para processar as mensagens do dealer
 def dealer(sock, message):
      #global MY_CARDS, GUESSES, MOVES, IS_DEALER, PLAYING, ROUND, SUB_ROUND
