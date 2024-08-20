@@ -1,0 +1,24 @@
+# Configurações da rede
+PLAYING = True
+SHACKLE = 0
+ROUND = 0
+SUB_ROUND = 0
+IS_DEALER = False
+DEALER_ID = 0
+SHUFFLED_CARDS = []
+CARDS = []
+MY_LIST = []
+MY_CARDS = []
+COUNT_WINS = [0, 0, 0, 0]
+GUESSES = [None, None, None, None]
+MOVES = [0, 0, 0, 0]
+PLAYERS_HPS = [7, 7, 7, 7]
+#h29 h30 h31 h32
+PLAYERS_IPS = ["10.254.223.57", "10.254.223.58", "10.254.223.59", "10.254.223.60"]
+PLAYERS_PORTS = [5039, 5040, 5041, 5042]
+MY_ID = 0
+MY_IP = 0
+MY_PORT = 0
+NEXT_ID = 0
+NEXT_IP = 0
+NEXT_PORT = 0
