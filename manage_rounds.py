@@ -1,5 +1,5 @@
 import global_vars
-from main import *
+from config_network import *
 
 # Função de inicialização do jogo
 def init_round(sock):

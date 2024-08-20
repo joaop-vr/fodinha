@@ -1,6 +1,6 @@
 import global_vars
 from prints import *
-from main import *
+from config_network import *
 
 # Função para processar as mensagens do dealer
 def dealer(sock, message):
